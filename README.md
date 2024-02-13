@@ -60,18 +60,23 @@ async def ping(event: MessageEvent):
 ```python
 from anon.plugin import Plugin, PluginManager
 from anon.event import MessageEvent
+from anon.logger import logger
+from anon import Bot
 
 
 class MyPlugin(Plugin):
-    def on_load(self):
-        self.interested = [MessageEvent]
+    async def on_load(self):
+        logger.info('My plugin loaded!')
+        # 暴力获取 Bot 实例
+        await Bot().send_private_message(114514191, 'Bot started!')
 
     async def on_event(self, event: MessageEvent):
         if event.raw == 'ping':
             await event.reply('pong')
 
 
-PluginManager().register_plugin(MyPlugin())
+# 过滤 MessageEvent 给 on_event
+PluginManager().register_plugin(MyPlugin([MessageEvent]))
 ```
 
 ### PluginManager 说明
@@ -79,8 +84,8 @@ PluginManager().register_plugin(MyPlugin())
 - 一切插件将由 `PluginManager` 管理，并在相应的生命周期中调用对应函数。
 - Plugin 实现了默认事件过滤器，可通过事件类型过滤事件调用响应函数。
 - 在 `register_event` 中，你可以不传参以监听所有事件，或是传如感兴趣的事件类型以进行基础过滤。
-- 若你采用自定义插件的形式，基础过滤器会以 `self.interested` 为基准，你可能需要在 `on_load` 中对其进行初始化。
-- 所有的 `on_event` 事件均为异步，`on_load` 均为同步。
+- 若你采用自定义插件的形式，基础过滤器会以 `self.interested` 为基准，此基准将在插件实例化时传入，你也可在生命周期内动态更改。
+- 所有 Plugin 事件均为异步。
 - 若你需要高级过滤，可以重载 `self.event_filter` 函数，同时满足默认过滤器与此过滤器的事件才会被传入 `on_event`。
 - 若你需要获取当前 bot 实例，放心使用 `from anon import Bot` 然后 `bot = Bot()` 即可，这是单例模式。
 

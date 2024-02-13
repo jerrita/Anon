@@ -8,8 +8,13 @@ from typing import List, Type
 
 
 class Plugin:
-    interested: List[Type[Event]] = []
+    interested: List[Type[Event]]
     rev: bool = False
+
+    def __init__(self, interested: List[Type[Event]] = None):
+        if interested is None:
+            interested = []
+        self.interested = interested
 
     def nop(self):
         pass
@@ -42,7 +47,7 @@ class Plugin:
     async def on_event(self, event: Event):
         self.nop()
 
-    def on_load(self):
+    async def on_load(self):
         logger.info(f'plugin {self} loaded.')
 
 
@@ -62,7 +67,9 @@ class PluginManager(SingletonObject):
             logger.critical('Unknown plugin type, please inherit from anon.Plugin')
             raise AnonError('plugin')
         logger.info(f'Plugin {plugin} registered.')
-        plugin.on_load()
+        task = asyncio.get_event_loop().create_task(plugin.on_load())
+        self.tasks.add(task)
+        task.add_done_callback(self.tasks.discard)
         self.plugins.append(plugin)
 
     def register_event(self, interest: List[Type[Event]] = None, rev: bool = False):

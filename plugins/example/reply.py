@@ -1,17 +1,17 @@
-from anon import PluginManager, Plugin
+from anon import PluginManager, Plugin, Bot
 from anon.event import MessageEvent
 from anon.message import *
 
 
 class ReplyPlugin(Plugin):
-    def on_load(self):
+    async def on_load(self):
         logger.info('ping plugin loaded.')
-        self.interested = [MessageEvent]
+        # await Bot().send_private_message(your_qq, 'Bot started!')
 
     async def on_event(self, event: MessageEvent):
         if event.raw == 'anon':
             await event.reply('哈？')
-        if event.raw == 'soyo':
+        if event.raw == 'sayo':
             await event.reply('我什么都愿意做的！')
         if event.raw == 'rikki':
             await event.reply('は？')
@@ -21,4 +21,4 @@ class ReplyPlugin(Plugin):
             await event.reply('芭菲～芭菲～')
 
 
-PluginManager().register_plugin(ReplyPlugin())
+PluginManager().register_plugin(ReplyPlugin([MessageEvent]))
