@@ -1,0 +1,48 @@
+name: Build Docker image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'requirements.txt'
+  workflow_dispatch:
+
+jobs:
+  buildx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract latest commit ref name
+        id: extract_ref_name
+        run: echo "ref_name=`git describe --tags --abbrev=0`" > $GITHUB_ENV
+
+      - name: Set up Docker BuildX
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64/v8,linux/arm/v7
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/anon:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/anon:${{ env.ref_name }}
+            ghcr.io/${{ github.actor }}/anon:latest
+            ghcr.io/${{ github.actor }}/anon:${{ env.ref_name }}
