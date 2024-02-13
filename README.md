@@ -1,5 +1,3 @@
-from anon.event import Event
-
 # Anon Framework
 
 > 开发中
@@ -89,7 +87,10 @@ PluginManager().register_plugin(MyPlugin())
 ## Roadmap
 
 - [x] 基础功能 (插件系统，基本组件)
+- [ ] 权限管理 
+- [ ] 容器化部署
 - [ ] 视频/语音
+- [ ] 元事件/系统消息
 - [ ] ???
 
 ## Resources
