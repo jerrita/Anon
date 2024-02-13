@@ -1,5 +1,3 @@
-from anon.event import Event
-
 # Anon Framework
 
 > 开发中
@@ -86,10 +84,52 @@ PluginManager().register_plugin(MyPlugin())
 - 若你需要高级过滤，可以重载 `self.event_filter` 函数，同时满足默认过滤器与此过滤器的事件才会被传入 `on_event`。
 - 若你需要获取当前 bot 实例，放心使用 `from anon import Bot` 然后 `bot = Bot()` 即可，这是单例模式。
 
+## 启动方式
+
+### 1. 混合模式
+
+> 直接基于此 Repo 进行开发
+
+```bash
+git clone https://github.com/jerrita/anon --depth=1
+git config pull.rebase true # 启用 rebase，上游不会变动 plugins 内容
+cd anon && vim plugins      # 写你的插件
+vim main.py
+gcam "some updates"
+pip install -r requirements.txt
+python main.py
+
+# 更新方式
+git pull
+
+```
+
+2. Docker 启动
+
+> 本项目的 docker package 会自动检测 /app 目录，并在没有 anon 的情况下将 package 中的 repo 拷入。
+>
+> 将你插件 repo 挂载到 /app 下即可，/app/.installed 文件标志 /app/requirements.txt 有无安装
+
+```bash
+mkdir repo && cd repo
+vim main.py
+mkdir -p plugins/yourname
+vim plugins/yourname/name.py
+echo "requests" > requirements.txt
+docker run --name anon \
+  --network host \
+  -v ${PWD}:/app \
+  -itd ghcr.io/jerrita/anon:latest
+
+```
+
 ## Roadmap
 
 - [x] 基础功能 (插件系统，基本组件)
+- [x] 容器化部署
+- [ ] 权限管理
 - [ ] 视频/语音
+- [ ] 元事件/系统消息
 - [ ] ???
 
 ## Resources

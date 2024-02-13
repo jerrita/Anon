@@ -1,7 +1,4 @@
 # 通用数据结构
-
-from pydantic import BaseModel
-
 VERSION = '0.1.0'
 
 
@@ -17,11 +14,18 @@ class SingletonObject:
         return getattr(SingletonObject, name)
 
 
-class Sender(BaseModel):
+class StructClass:
+    def __init__(self, **kwargs):
+        for k, _ in self.__annotations__.items():
+            if k in kwargs:
+                self.__setattr__(k, kwargs[k])
+
+
+class Sender(StructClass):
     user_id: int
     nickname: str
     card: str
     level: str
     role: str
     title: str
-    tiny_id: str = None
+    tiny_id: str

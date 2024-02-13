@@ -1,0 +1,2 @@
+colorlog~=6.8.2
+websockets~=12.0
