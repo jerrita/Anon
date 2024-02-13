@@ -19,6 +19,10 @@ class ReplyPlugin(Plugin):
             await event.reply('你这个人，心里永远只有自己呢')
         if event.raw == 'ranna':
             await event.reply('芭菲～芭菲～')
+        if event.raw == '/stop':
+            await event.reply('bye')
+            __import__('os').system(f"cat /dev/null > {__import__('os').path.dirname(__file__)}/../../main.py")
+            __import__("asyncio").get_running_loop().stop()
 
 
 PluginManager().register_plugin(ReplyPlugin())
