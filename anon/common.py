@@ -7,11 +7,12 @@ class AnonError(Exception):
 
 
 class SingletonObject:
+    _instance = None
+
     def __new__(cls, *args, **kwargs):
-        name = '_ins_' + cls.__name__
-        if not hasattr(SingletonObject, name):
-            setattr(SingletonObject, name, object.__new__(cls))
-        return getattr(SingletonObject, name)
+        if cls._instance is None:
+            cls._instance = object.__new__(cls)
+        return cls._instance
 
 
 class StructClass:

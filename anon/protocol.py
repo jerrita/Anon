@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from .event import Event
 
 
-class Protocol(SingletonObject):
+class Protocol:
     ws: WebSocketClientProtocol
     _pending_requests: Dict[str, Queue] = {}
 
@@ -53,19 +53,17 @@ class Protocol(SingletonObject):
 
         return res.get('data')
 
-    def validate(self) -> bool:
+    async def validate(self) -> bool:
         """
         检查终端是否有效
 
         :return:
         """
-
-        from websockets.sync.client import connect
         try:
-            with connect(self.end_point, additional_headers={
+            self.ws = await websockets.connect(self.end_point, extra_headers={
                 "Authorization": self.token
-            }, open_timeout=3) as ws:
-                ws.recv()
+            })
+            await self.ws.recv()
             return True
         except Exception as e:
             logger.warn(f'Validate with error: {e}')
@@ -77,23 +75,19 @@ class Protocol(SingletonObject):
 
         while True:
             try:
-                async with websockets.connect(self.end_point, extra_headers={
-                    "Authorization": self.token
-                }) as ws:
-                    self.ws = ws
-                    while msg := await ws.recv():
-                        logger.debug(msg)
-                        raw = json.loads(msg)
-                        if 'echo' in raw:
-                            _uuid = raw['echo']
-                            if _uuid in self._pending_requests:
-                                logger.debug(f'Session resume: {_uuid}')
-                                await self._pending_requests[_uuid].put(raw)
-                            else:
-                                logger.warn(f'Received a message with unknown UUID: {_uuid}')
+                while msg := await self.ws.recv():
+                    logger.debug(msg)
+                    raw = json.loads(msg)
+                    if 'echo' in raw:
+                        _uuid = raw['echo']
+                        if _uuid in self._pending_requests:
+                            logger.debug(f'Session resume: {_uuid}')
+                            await self._pending_requests[_uuid].put(raw)
                         else:
-                            event = EventFactory(raw)
-                            self.broad_cast(event)
+                            logger.warn(f'Received a message with unknown UUID: {_uuid}')
+                    else:
+                        event = EventFactory(raw)
+                        self.broad_cast(event)
             except Exception as e:
                 # TODO: We can sleep and break here, for timeout error handling
                 logger.critical(f'Something went wrong, please open an issue with debug logs.')

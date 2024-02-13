@@ -8,7 +8,7 @@ from .plugin import PluginManager, Plugin
 from typing import List
 
 
-class Bot(Protocol):
+class Bot(Protocol, SingletonObject):
     pm: PluginManager
     _initialized: bool = False
 
@@ -24,7 +24,7 @@ class Bot(Protocol):
         super().__init__(ep, token)
         logger.info(f'Welcome to use Anon/{VERSION} framework! Have fun!')
         logger.info(f'Anon created => {ep}, validating...')
-        if not self.validate():
+        if not asyncio.get_event_loop().run_until_complete(self.validate()):
             logger.critical('Something wrong, check your endpoint and token.')
             raise AnonError('Bot init')
         logger.info(f'Bot Connected!')
