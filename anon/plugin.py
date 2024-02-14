@@ -50,10 +50,20 @@ class Plugin:
     async def on_load(self):
         logger.info(f'plugin {self} loaded.')
 
+    async def on_shutdown(self):
+        logger.info(f'plugin {self} shutdown.')
+
 
 class PluginManager(SingletonObject):
     plugins: List[Plugin] = []
     tasks = set()
+    _initialized: bool = False
+    _loop: asyncio.AbstractEventLoop
+
+    def __init__(self, *args):
+        if not self._initialized:
+            self._loop = args[0]
+            self._initialized = True
 
     def broad_cast(self, event: Event):
         for plugin in self.plugins:
@@ -62,12 +72,21 @@ class PluginManager(SingletonObject):
                 self.tasks.add(task)
                 task.add_done_callback(self.tasks.discard)
 
+    async def shutdown(self, timeout: int):
+        logger.info(f'Plugins shutting down, timeout = {timeout}s...')
+        for plugin in self.plugins:
+            await self._loop.create_task(plugin.on_shutdown())
+        for i in range(timeout):
+            logger.warn(f'PluginManager waiting... {timeout - i}s')
+            await asyncio.sleep(1)
+        logger.info('PluginManager Shutdown.')
+
     def register_plugin(self, plugin: Plugin):
         if not isinstance(plugin, Plugin):
             logger.critical('Unknown plugin type, please inherit from anon.Plugin')
             raise AnonError('plugin')
         logger.info(f'Plugin {plugin} registered.')
-        task = asyncio.get_event_loop().create_task(plugin.on_load())
+        task = self._loop.create_task(plugin.on_load())
         self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
         self.plugins.append(plugin)

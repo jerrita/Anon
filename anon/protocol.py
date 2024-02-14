@@ -10,7 +10,7 @@ from .common import AnonError, SingletonObject
 from .logger import logger
 from .message import Message, Convertable
 from typing import TYPE_CHECKING, Dict, Any
-from asyncio import Queue
+from asyncio import Queue, AbstractEventLoop
 
 if TYPE_CHECKING:
     from .event import Event
@@ -23,6 +23,7 @@ class Protocol:
     def __init__(self, ep: str, token: str):
         self.end_point = f'ws://{ep}'
         self.token = token
+        self._loop = asyncio.new_event_loop()
 
     def broad_cast(self, event: Event):
         raise NotImplementedError

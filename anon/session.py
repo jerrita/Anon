@@ -1,4 +1,5 @@
 import asyncio
+import signal
 
 from .protocol import Protocol
 from .logger import logger
@@ -10,26 +11,39 @@ from typing import List
 
 class Bot(Protocol, SingletonObject):
     pm: PluginManager
+    timeout: int
     _initialized: bool = False
+    _loop: asyncio.AbstractEventLoop
 
-    def __init__(self, ep: str = '127.0.0.1:5800', token: str = ''):
+    def __init__(self, ep: str = '127.0.0.1:5800', token: str = '', timeout: int = 3):
         """
         Anon 实例
 
         :param ep: 主动 ws 地址，格式为 domain:port
         :param token: token
+        :param timeout: 收到 SIGTERM 的等待插件停止时间
         """
         if self._initialized:
             return
         super().__init__(ep, token)
         logger.info(f'Welcome to use Anon/{VERSION} framework! Have fun!')
         logger.info(f'Anon created => {ep}, validating...')
-        if not asyncio.get_event_loop().run_until_complete(self.validate()):
+        self._loop = asyncio.get_event_loop()
+        self._loop.add_signal_handler(signal.SIGTERM, lambda: self._loop.create_task(self.sig_term()))
+        if not self._loop.run_until_complete(self.validate()):
             logger.critical('Something wrong, check your endpoint and token.')
             raise AnonError('Bot init')
         logger.info(f'Bot Connected!')
-        self.pm = PluginManager()
+        self.pm = PluginManager(self._loop)
+        self.timeout = timeout
         self._initialized = True
+
+    async def sig_term(self):
+        logger.critical('SIGTERM received, stopping...')
+        logger.warn(f'Pending tasks: {len(asyncio.all_tasks())}')
+        await self.pm.shutdown(self.timeout)
+        logger.critical('Anon stopped.')
+        self._loop.stop()
 
     def register_plugins(self, plugins: list):
         for plugin in plugins:
@@ -51,4 +65,7 @@ class Bot(Protocol, SingletonObject):
         self.pm.broad_cast(e)
 
     def loop(self):
-        asyncio.get_event_loop().run_until_complete(self.event_looper())
+        try:
+            self._loop.run_until_complete(self.event_looper())
+        except Exception as e:
+            logger.critical(f'Loop error: {e}')

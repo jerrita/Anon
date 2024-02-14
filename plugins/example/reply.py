@@ -11,7 +11,7 @@ class ReplyPlugin(Plugin):
     async def on_event(self, event: MessageEvent):
         if event.raw == 'anon':
             await event.reply('哈？')
-        if event.raw == 'sayo':
+        if event.raw == 'soyo':
             await event.reply('我什么都愿意做的！')
         if event.raw == 'rikki':
             await event.reply('は？')
