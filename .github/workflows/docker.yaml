@@ -16,21 +16,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check tag
-        id: check_tag
+      - name: Extract version
+        id: set_version
         run: |
-          if [ -z "$GITHUB_REF" ]; then
-            echo "No tag found."
-            exit 1
-          fi
-          echo "ref_name=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
-      - name: Set latest tag
-        if: steps.check_tag.outcome == 'failure'
-        id: get_latest_tag
-        run: |
-          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
-          echo "ref_name=${latest_tag#refs/*/}" >> $GITHUB_ENV
+          echo "VERSION=$(cat anon/common.py | grep VERSION | cut -d '=' -f2 | tr -d \' | tr -d ' ')" > $GITHUB_ENV
+          echo "Current VERSION=${{ env.VERSION }}"
 
       - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@v3
@@ -56,6 +46,6 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/anon:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/anon:${{ env.ref_name }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/anon:${{ env.VERSION }}
             ghcr.io/${{ github.actor }}/anon:latest
-            ghcr.io/${{ github.actor }}/anon:${{ env.ref_name }}
+            ghcr.io/${{ github.actor }}/anon:${{ env.VERSION }}

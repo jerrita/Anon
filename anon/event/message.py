@@ -29,7 +29,7 @@ class MessageEvent(Event):
         self.category = raw.get('sub_type')
         self.mid = raw.get('message_id')
         self.msg = Message.encode(raw.get('message'))
-        self.raw = raw.get('raw_message')
+        self.raw = self.msg.text()
         self.sender = Sender(**raw.get('sender'))
 
         from ..session import Bot

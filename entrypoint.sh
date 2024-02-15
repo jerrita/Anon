@@ -5,8 +5,11 @@ if [ ! -d /app ]; then
   exit 1
 fi
 
-if [ ! -f /app/anon ]; then
+if [ ! -d /app/anon ]; then
+  echo "/app/anon is not dir, copying..."
+  rm -rf /app/anon
   cp -r /repo/anon /app
+  cp -r /repo/plugins/* /app/plugins
 fi
 
 if [ -f /app/requirements.txt ] && [ ! -f /app/.installed ]; then
