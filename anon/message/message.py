@@ -41,6 +41,14 @@ class Message(List[ChainObj]):
                 res.append(Text(f'<{type(i)}>'))
         return res
 
+    def text(self) -> str:
+        """
+        建议取代 event.raw 使用，获取可处理的文本
+
+        :return: str
+        """
+        return self.__repr__()
+
     def __repr__(self):
         return ' '.join(i.__repr__() for i in self)
 
