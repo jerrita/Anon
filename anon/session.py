@@ -1,4 +1,5 @@
 import asyncio
+import os
 import signal
 
 from .protocol import Protocol
@@ -29,7 +30,8 @@ class Bot(Protocol, SingletonObject):
         logger.info(f'Welcome to use Anon/{VERSION} framework! Have fun!')
         logger.info(f'Anon created => {ep}, validating...')
         self._loop = asyncio.get_event_loop()
-        # self._loop.add_signal_handler(signal.SIGTERM, lambda: self._loop.create_task(self.sig_term()))
+        if os.name != 'nt':  # 如果不是 Windows 平台
+            self._loop.add_signal_handler(signal.SIGTERM, lambda: self._loop.create_task(self.sig_term()))
         if not self._loop.run_until_complete(self.validate()):
             logger.critical('Something wrong, check your endpoint and token.')
             raise AnonError('Bot init')

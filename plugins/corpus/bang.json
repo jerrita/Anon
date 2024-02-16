@@ -71,12 +71,29 @@
     }
   ],
   "AveMujica": [
-    {"name": ["saki","祥子","Sakiko","Togawa Sakiko","TogawaSakiko",
+    {"name": ["saki","祥子","丰川祥子","Sakiko","Togawa Sakiko","TogawaSakiko",
         "Oblivionis","大祥老师","客服S","Staff S","客服小祥","大🐘老师"],
       "birthday": "02-14",
       "cv": "高尾奏音",
       "motto": ["你这个人，满脑子都只想到自己呢","打咩得丝袜！","过去软弱的我已经死了！","您愿意将余生都交给我吗",
         "祝你幸福","拜托了，初华，让我忘记一切吧","我今天是来告诉大家一件事的，我要退出CRYCHIC"]
     }
+  ],
+  "Afterglow": [
+    {"name": ["himari","绯玛丽","上原绯玛丽","Uehara Himari","UeharaHimari",
+        "hmr","一呼零应","小绯","肥玛丽","巨乳版阿卡林","肥绯"],
+      "birthday": "10-23",
+      "cv": "加藤英美里",
+      "motto": ["A A O!","其实啊，我给大家做了护身符!"]
+    },
+    {"name": ["moca","moka","摩卡","青叶摩卡","Aoba Moka","AobaMoka",
+        "小摩卡","小恶摩","摩卡亲","摩卡酱"],
+      "birthday": "09-03",
+      "cv": "三泽纱千香",
+      "motto": ["谁~叫~摩~卡~酱~是~小~天~才~呢~","用~面~包~来~奖~励~我~吧~"]
+    }
   ]
+
+
+
 }

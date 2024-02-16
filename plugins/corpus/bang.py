@@ -16,8 +16,9 @@ def choose_motto(mottos, first_prob=0.0):
     """
     if not mottos:
         return None
-
-    if first_prob <= 0:
+    if len(mottos)==1:
+        return mottos[0]
+    elif first_prob <= 0:
         return random.choice(mottos)
     else:
         return mottos[0] if random.random() <= first_prob else random.choice(mottos[1:])
