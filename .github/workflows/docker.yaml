@@ -19,7 +19,7 @@ jobs:
       - name: Extract version
         id: set_version
         run: |
-          echo "VERSION=$(cat anon/common.py | grep VERSION | cut -d '=' -f2 | tr -d \' | tr -d ' ')" > $GITHUB_ENV
+          echo "VERSION=v$(cat anon/common.py | grep VERSION | cut -d '=' -f2 | tr -d \' | tr -d ' ')" > $GITHUB_ENV
           echo "Current VERSION=${{ env.VERSION }}"
 
       - name: Set up Docker BuildX
