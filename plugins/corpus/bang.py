@@ -23,26 +23,20 @@ def choose_motto(mottos, first_prob=0.0):
         return mottos[0] if random.random() <= first_prob else random.choice(mottos[1:])
 
 
-@PluginManager().register_event([MessageEvent])
-async def on_event(event: MessageEvent):
-    if event.raw == 'soyo':
-        await event.reply('我什么都愿意做的！')
-    if event.raw == 'rikki':
-        await event.reply('は？')
-    if event.raw == 'saki':
-        await event.reply('你这个人，心里永远只有自己呢')
-    if event.raw == 'ranna':
-        await event.reply('芭菲～芭菲～')
+pm = PluginManager()
 
+@pm.register_event([MessageEvent])
+async def on_event(event: MessageEvent):
     file_path = os.path.join(os.path.dirname(__file__), 'bang.json')
     with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    match_string = event.msg.text()
+    match_string = event.msg.text().lower()
 
     # 直接匹配
     for group in data.values():
         for member in group:
-            if match_string in member['name']:
+            names = [name.lower() for name in member['name']]
+            if any(match_string in name for name in names):  # 检查 match_string 是否在转换后的任一名字中
                 motto = choose_motto(member['motto'], first_prob=0.5)
                 await event.reply(motto)
                 break
