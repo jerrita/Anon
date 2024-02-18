@@ -112,6 +112,9 @@ class Protocol:
         if auto_recall:
             data.update({'recall_duration': auto_recall})
         logger.info(f'G({gid}) <- {msg}')
+        if gid == 114514191:
+            logger.warn('Maybe this msg is sent from example plugins, ignored.')
+            return False
         return await self.send_request('send_group_message', data) is not None
 
     async def send_private_message(self, uid: int, msg: Convertable, auto_recall: int = 0) -> bool:
@@ -132,4 +135,7 @@ class Protocol:
         if auto_recall:
             data.update({'recall_duration': auto_recall})
         logger.info(f'F({uid}) <- {msg}')
+        if uid == 114514191:
+            logger.warn('Maybe this msg is sent from example plugins, ignored.')
+            return False
         return await self.send_request('send_private_msg', data) is not None

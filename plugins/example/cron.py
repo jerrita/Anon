@@ -1,5 +1,6 @@
 from anon import Bot, PluginManager, Plugin
 from anon.logger import logger
+from anon.storage import Storage
 
 
 class CronPlugin(Plugin):
@@ -12,7 +13,7 @@ class CronPlugin(Plugin):
 
     async def on_cron(self):
         logger.info('Cron triggered')
-        await self.bot.send_private_message(114514191, 'Cron triggered')
+        await self.bot.send_private_message(Storage('core')['def_user'], 'Cron triggered')
 
 
 PluginManager().register_plugin(CronPlugin())

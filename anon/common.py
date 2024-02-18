@@ -1,5 +1,5 @@
 # 通用数据结构
-VERSION = '0.1.5'
+VERSION = '0.2.0'
 
 
 class AnonError(Exception):
@@ -21,6 +21,9 @@ class StructClass:
             if k in kwargs:
                 self.__setattr__(k, kwargs[k])
 
+    def data(self):
+        return {attr: getattr(self, attr) for attr in self.__annotations__ if hasattr(self, attr)}
+
 
 class Sender(StructClass):
     user_id: int
@@ -30,3 +33,10 @@ class Sender(StructClass):
     role: str
     title: str
     tiny_id: str
+
+
+class AnonExtraConfig(StructClass):
+    storage_dir: str = 'storage'
+    log_file: str = '/dev/null'
+    def_user: int = 114514191  # 默认用户，某些示例插件会使用
+    def_group: int = 114514191  # 默认群组，某些示例插件会使用

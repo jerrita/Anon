@@ -96,8 +96,8 @@ class PluginManager(SingletonObject):
     def __init__(self, *args):
         if not self._initialized:
             self._loop = args[0]
-            self._initialized = True
             self._cron = CronThread()
+            self._initialized = True
             logger.info('PluginManager initialized.')
 
     def broad_cast(self, event: Event):

@@ -4,10 +4,10 @@ import signal
 
 from .protocol import Protocol
 from .logger import logger
-from .common import AnonError, VERSION, SingletonObject
+from .common import AnonError, VERSION, SingletonObject, AnonExtraConfig
 from .event import Event, MessageEvent
 from .plugin import PluginManager, Plugin
-from typing import List
+from .storage import Storage
 
 
 class Bot(Protocol, SingletonObject):
@@ -16,7 +16,7 @@ class Bot(Protocol, SingletonObject):
     _initialized: bool = False
     _loop: asyncio.AbstractEventLoop
 
-    def __init__(self, ep: str = '127.0.0.1:5800', token: str = '', timeout: int = 3):
+    def __init__(self, ep: str = '127.0.0.1:5800', token: str = '', timeout: int = 3, **kwargs):
         """
         Anon 实例
 
@@ -28,6 +28,9 @@ class Bot(Protocol, SingletonObject):
             return
         super().__init__(ep, token)
         logger.info(f'Welcome to use Anon/{VERSION} framework! Have fun!')
+        self.extras = AnonExtraConfig(**kwargs)
+        logger.debug(f'Extras: {self.extras.data()}')
+        Storage('core').update(self.extras.data())
         logger.info(f'Anon created => {ep}, validating...')
         self._loop = asyncio.get_event_loop()
         if os.name != 'nt':  # 如果不是 Windows 平台
@@ -43,6 +46,7 @@ class Bot(Protocol, SingletonObject):
     async def sig_term(self):
         logger.critical('SIGTERM received, stopping...')
         logger.warn(f'Pending tasks: {len(asyncio.all_tasks())}')
+        Storage('core').shutdown()
         await self.pm.shutdown(self.timeout)
         logger.critical('Anon stopped.')
         self._loop.stop()

@@ -2,14 +2,17 @@ from datetime import datetime
 from pytz import timezone
 from anon import Bot, PluginManager, Plugin
 from anon.logger import logger
+from anon.storage import Storage
 
 
 class CronPlugin(Plugin):
     bot: Bot
     cron = '0 0 * * 1,5'
+    group: int
 
     async def on_load(self):
         self.bot = Bot()
+        self.group = Storage('core')['def_group']
         logger.info('CronPlugin loaded')
 
     async def on_cron(self):
@@ -18,9 +21,9 @@ class CronPlugin(Plugin):
         weekday = current_time.weekday()
 
         if weekday == 0:  # Monday
-            await self.bot.send_private_message(114514, "周一啦！")
+            await self.bot.send_group_message(self.group, "周一啦！")
         elif weekday == 4:  # Friday
-            await self.bot.send_private_message(114514, "周五啦！")
+            await self.bot.send_group_message(self.group, "周五啦！")
         else:
             logger.info('Cron triggered but not on Monday or Friday')
 
