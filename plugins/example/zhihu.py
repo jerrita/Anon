@@ -1,3 +1,5 @@
+import asyncio
+
 import aiohttp
 from datetime import datetime
 from pytz import timezone
@@ -25,8 +27,29 @@ async def fetch(session, url):
 
 async def get_zhihu_hot_list():
     async with aiohttp.ClientSession() as session:
-        html = await fetch(session, 'https://github.com/justjavac/zhihu-trending-hot-questions')
-        return parse_hot_list(html)
+        retries = 3
+        while retries > 0:
+            try:
+                html = await fetch(session, 'https://github.com/justjavac/zhihu-trending-hot-questions')
+                return parse_hot_list(html)
+            except (aiohttp.ClientError, aiohttp.http_exceptions.HttpProcessingError) as e:
+                logger.error(f"网络请求错误: {e}")
+                retries -= 1
+                if retries > 0:
+                    logger.info("将在一分钟后重试...")
+                    await asyncio.sleep(60)
+                else:
+                    logger.error("多次尝试获取知乎热榜失败，跳过此次尝试。")
+                    return None
+            except Exception as e:
+                logger.error(f"解析HTML时出错: {e}")
+                retries -= 1
+                if retries > 0:
+                    logger.info("将在一分钟后重试...")
+                    await asyncio.sleep(60)
+                else:
+                    logger.error("多次尝试解析知乎热榜失败，跳过此次尝试。")
+                    return None
 
 
 class CronPlugin(Plugin):
