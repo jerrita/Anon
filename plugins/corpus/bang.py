@@ -38,7 +38,7 @@ async def on_event(event: MessageEvent):
     for group in data.values():
         for member in group:
             names = [name.lower() for name in member['name']]
-            if any(match_string in name for name in names):  # 检查 match_string 是否在转换后的任一名字中
+            if any(match_string == name for name in names):  # 检查 match_string 是否在转换后的任一名字中
                 motto = choose_motto(member['motto'], first_prob=0.5)
                 await event.reply(motto)
                 break

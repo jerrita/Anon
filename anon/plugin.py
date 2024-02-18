@@ -24,6 +24,7 @@ class CronThread(threading.Thread):
 
     def add_cron(self, cron: str, func, *args):
         async def wrapper():
+            logger.info(f'Cron triggered: {cron}')
             await func(*args)
 
         task = aiocron.crontab(cron, func=wrapper, loop=self.loop)
