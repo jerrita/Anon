@@ -1,4 +1,6 @@
 import asyncio
+import threading
+import aiocron
 
 from .common import SingletonObject, AnonError
 from .event import Event
@@ -7,9 +9,35 @@ from .logger import logger
 from typing import List, Type
 
 
+class CronThread(threading.Thread):
+    loop: asyncio.AbstractEventLoop
+    tasks = set()
+
+    def __init__(self):
+        super().__init__()
+        self.start()
+
+    def run(self):
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
+
+    def add_cron(self, cron: str, func, *args):
+        async def wrapper():
+            await func(*args)
+
+        task = aiocron.crontab(cron, func=wrapper, loop=self.loop)
+        self.tasks.add(task)
+
+    def stop(self):
+        logger.warn('CronThread stopping...')
+        self.loop.call_soon_threadsafe(self.loop.stop)
+
+
 class Plugin:
     interested: List[Type[Event]]
     rev: bool = False
+    cron: str = None
 
     def __init__(self, interested: List[Type[Event]] = None):
         if interested is None:
@@ -45,13 +73,16 @@ class Plugin:
         return False
 
     async def on_event(self, event: Event):
-        self.nop()
+        pass
 
     async def on_load(self):
-        logger.info(f'plugin {self} loaded.')
+        pass
+
+    async def on_cron(self):
+        pass
 
     async def on_shutdown(self):
-        logger.info(f'plugin {self} shutdown.')
+        pass
 
 
 class PluginManager(SingletonObject):
@@ -59,11 +90,14 @@ class PluginManager(SingletonObject):
     tasks = set()
     _initialized: bool = False
     _loop: asyncio.AbstractEventLoop
+    _cron: CronThread
 
     def __init__(self, *args):
         if not self._initialized:
             self._loop = args[0]
             self._initialized = True
+            self._cron = CronThread()
+            logger.info('PluginManager initialized.')
 
     def broad_cast(self, event: Event):
         for plugin in self.plugins:
@@ -74,6 +108,7 @@ class PluginManager(SingletonObject):
 
     async def shutdown(self, timeout: int):
         logger.info(f'Plugins shutting down, timeout = {timeout}s...')
+        self._cron.stop()
         for plugin in self.plugins:
             await self._loop.create_task(plugin.on_shutdown())
         for i in range(timeout):
@@ -89,12 +124,16 @@ class PluginManager(SingletonObject):
         task = self._loop.create_task(plugin.on_load())
         self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
+        if plugin.cron is not None:
+            logger.info(f'Plugin {plugin} has cron: {plugin.cron}')
+            self._cron.add_cron(plugin.cron, plugin.on_cron)
         self.plugins.append(plugin)
 
     def register_event(self, interest: List[Type[Event]] = None, rev: bool = False):
         def register(func):
             plugin = Plugin()
             plugin.interested = interest
+            plugin.rev = rev
             plugin.on_event = func
             self.register_plugin(plugin)
 
@@ -104,6 +143,15 @@ class PluginManager(SingletonObject):
         def register(func):
             plugin = Plugin()
             plugin.on_load = func
+            self.register_plugin(plugin)
+
+        return register
+
+    def register_cron(self, cron: str):
+        def register(func):
+            plugin = Plugin()
+            plugin.on_cron = func
+            plugin.cron = cron
             self.register_plugin(plugin)
 
         return register

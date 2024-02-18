@@ -16,7 +16,7 @@ def choose_motto(mottos, first_prob=0.0):
     """
     if not mottos:
         return None
-    if len(mottos)==1:
+    if len(mottos) == 1:
         return mottos[0]
     elif first_prob <= 0:
         return random.choice(mottos)
@@ -25,6 +25,7 @@ def choose_motto(mottos, first_prob=0.0):
 
 
 pm = PluginManager()
+
 
 @pm.register_event([MessageEvent])
 async def on_event(event: MessageEvent):
