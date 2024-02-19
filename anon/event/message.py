@@ -1,17 +1,17 @@
 from .event import Event
-from ..message import Message, Reply, Text, Convertable
-from ..logger import logger
 from ..common import Sender, AnonError
-
-from typing import Any
+from ..logger import logger
+from ..message import Message, Reply, Convertable
+from ..protocol import Protocol
 
 
 class MessageEventFactory:
-    def __new__(cls, raw: dict):
+    def __new__(cls, proto: Protocol, raw: dict):
         _type = raw.get('message_type')
         if _type == 'private':
             return PrivateMessage(raw)
         if _type == 'group':
+            raw['group_name'] = proto.cached_group_name(raw.get('group_id'))
             return GroupMessage(raw)
         logger.warn(f'Unsupported MessageEvent type: {_type}')
         return MessageEvent(raw)
@@ -69,7 +69,7 @@ class GroupMessage(MessageEvent):
     def __init__(self, raw: dict):
         super().__init__(raw)
         self.gid = raw.get('group_id')
+        self.group_name = raw.get('group_name')
 
     def __repr__(self):
-        # TODO: query group name from gid
-        return f'G({self.gid}) -> ' + super().__repr__()
+        return f'{self.group_name}({self.gid}) -> ' + super().__repr__()

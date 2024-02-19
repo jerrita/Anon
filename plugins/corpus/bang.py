@@ -1,6 +1,6 @@
-import random
 import json
 import os
+import random
 
 from anon import PluginManager
 from anon.event import MessageEvent

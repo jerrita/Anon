@@ -1,12 +1,12 @@
 import asyncio
 import threading
+from typing import List, Type
+
 import aiocron
 
 from .common import SingletonObject, AnonError
 from .event import Event
 from .logger import logger
-
-from typing import List, Type
 
 
 class CronThread(threading.Thread):

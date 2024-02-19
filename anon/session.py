@@ -2,19 +2,20 @@ import asyncio
 import os
 import signal
 
-from .protocol import Protocol
-from .logger import logger
 from .common import AnonError, VERSION, SingletonObject, AnonExtraConfig
 from .event import Event, MessageEvent
+from .logger import logger
 from .plugin import PluginManager, Plugin
+from .protocol import Protocol
 from .storage import Storage
 
 
 class Bot(Protocol, SingletonObject):
     pm: PluginManager
     timeout: int
-    _initialized: bool = False
+    _group_cache: dict
     _loop: asyncio.AbstractEventLoop
+    _initialized: bool = False
 
     def __init__(self, ep: str = '127.0.0.1:5800', token: str = '', timeout: int = 3, **kwargs):
         """

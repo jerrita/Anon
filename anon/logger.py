@@ -1,4 +1,5 @@
 import logging
+
 import colorlog
 
 log_colors_config = {

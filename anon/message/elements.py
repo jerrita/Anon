@@ -1,6 +1,7 @@
 # https://whitechi73.github.io/OpenShamrock/message/format.html
 
 from enum import IntEnum, Enum
+
 from ..logger import logger
 
 

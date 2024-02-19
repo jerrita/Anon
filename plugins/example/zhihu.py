@@ -1,12 +1,13 @@
 import asyncio
-import aiohttp
-
 from datetime import datetime
+
+import aiohttp
+from bs4 import BeautifulSoup
 from pytz import timezone
+
 from anon import Bot, PluginManager, Plugin
 from anon.logger import logger
 from anon.storage import Storage
-from bs4 import BeautifulSoup
 
 
 def parse_hot_list(html):
@@ -67,8 +68,6 @@ class CronPlugin(Plugin):
         shanghai_tz = timezone('Asia/Shanghai')
         current_time = datetime.now(shanghai_tz)
         hour = current_time.hour
-        logger.info('东八区已经判定')
-
         if hour in [8, 10, 12, 14, 16, 18, 20, 22]:
             logger.info('Cron triggered on the xth minute of specified hours')
 

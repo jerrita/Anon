@@ -1,8 +1,8 @@
-import os
 import json
+import os
 
-from anon.logger import logger
 from anon.common import AnonExtraConfig
+from anon.logger import logger
 
 
 class Storage:

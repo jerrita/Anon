@@ -1,9 +1,13 @@
+from ..protocol import Protocol
+
+
 class EventFactory:
-    def __new__(cls, raw: dict) -> 'Event':
+
+    def __new__(cls, proto: Protocol, raw: dict) -> 'Event':
         _type = raw.get('post_type')
         if _type == 'message':
             from .message import MessageEventFactory
-            return MessageEventFactory(raw)
+            return MessageEventFactory(proto, raw)
         if _type == 'meta_event':
             return MetaEvent(raw)
         return Event(raw)

@@ -3,14 +3,15 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
-import websockets
+from asyncio import Queue
+from typing import TYPE_CHECKING, Dict, List
 
+import websockets
 from websockets import WebSocketClientProtocol
-from .common import AnonError, SingletonObject
+
+from .common import *
 from .logger import logger
 from .message import Message, Convertable
-from typing import TYPE_CHECKING, Dict, Any
-from asyncio import Queue, AbstractEventLoop
 
 if TYPE_CHECKING:
     from .event import Event
@@ -18,23 +19,25 @@ if TYPE_CHECKING:
 
 class Protocol:
     ws: WebSocketClientProtocol
+    _group_cache: Dict[int, GroupInfo]
     _pending_requests: Dict[str, Queue] = {}
 
     def __init__(self, ep: str, token: str):
         self.end_point = f'ws://{ep}'
         self.token = token
         self._loop = asyncio.new_event_loop()
+        self._group_cache = {}
 
     def broad_cast(self, event: Event):
         raise NotImplementedError
 
-    async def send_request(self, func: str, data: dict) -> dict:
+    async def send_request(self, func: str, data: dict) -> dict | list:
         """
         发送请求，若失败，则返回 None
 
         :param func: 请求服务名
         :param data: params 参数
-        :return: 是否成功
+        :return: data 字段
         """
         _uuid = str(uuid.uuid4())
         raw = {
@@ -87,7 +90,7 @@ class Protocol:
                         else:
                             logger.warn(f'Received a message with unknown UUID: {_uuid}')
                     else:
-                        event = EventFactory(raw)
+                        event = EventFactory(self, raw)
                         self.broad_cast(event)
             except Exception as e:
                 # TODO: We can sleep and break here, for timeout error handling
@@ -111,7 +114,7 @@ class Protocol:
         }
         if auto_recall:
             data.update({'recall_duration': auto_recall})
-        logger.info(f'G({gid}) <- {msg}')
+        logger.info(f'{self.cached_group_name(gid)}({gid}) <- {msg}')
         if gid == 114514191:
             logger.warn('Maybe this msg is sent from example plugins, ignored.')
             return False
@@ -139,3 +142,35 @@ class Protocol:
             logger.warn('Maybe this msg is sent from example plugins, ignored.')
             return False
         return await self.send_request('send_private_msg', data) is not None
+
+    def cached_group_name(self, gid: int) -> str:
+        if gid in self._group_cache:
+            return self._group_cache[gid].group_name
+        self._loop.create_task(self.get_group_info(gid))
+        return '<loading>'
+
+    async def get_group_info(self, gid: int) -> GroupInfo:
+        """
+        获取群信息
+
+        :param gid: 群号
+        :return:
+        """
+        data: dict = await self.send_request('get_group_info', {'group_id': gid})
+        group = GroupInfo(**data)
+        self._group_cache[gid] = group
+        return group
+
+    async def get_group_list(self) -> List[GroupInfo]:
+        """
+        获取群列表
+
+        :return:
+        """
+        data: list = await self.send_request('get_group_list', {})
+        res = []
+        for i in data:
+            group = GroupInfo(**i)
+            self._group_cache[group.group_id] = group
+            res.append(group)
+        return res

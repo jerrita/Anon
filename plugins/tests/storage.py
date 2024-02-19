@@ -1,7 +1,6 @@
-from anon import Bot, Plugin, PluginManager
-from anon.event import Event
-from anon.storage import Storage
+from anon import Plugin, PluginManager
 from anon.event.message import PrivateMessage
+from anon.storage import Storage
 
 
 class StorageTest(Plugin):

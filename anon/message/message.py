@@ -1,6 +1,7 @@
+from typing import List, Union, Type
+
 from .elements import *
 from ..logger import logger
-from typing import List, Union, Type
 
 MessageRaw = List[dict]
 

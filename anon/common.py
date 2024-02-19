@@ -35,6 +35,20 @@ class Sender(StructClass):
     tiny_id: str
 
 
+class GroupInfo(StructClass):
+    group_id: int
+    group_name: str
+    group_remark: str
+    group_uin: int
+    admins: list
+    class_text: str
+    is_frozen: bool
+    max_member: int
+    max_member_count: int
+    member_num: int
+    member_count: int
+
+
 class AnonExtraConfig(StructClass):
     storage_dir: str = 'storage'
     log_file: str = '/dev/null'
