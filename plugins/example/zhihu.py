@@ -1,10 +1,11 @@
 import asyncio
-
 import aiohttp
+
 from datetime import datetime
 from pytz import timezone
 from anon import Bot, PluginManager, Plugin
 from anon.logger import logger
+from anon.storage import Storage
 from bs4 import BeautifulSoup
 
 
@@ -55,9 +56,11 @@ async def get_zhihu_hot_list():
 class CronPlugin(Plugin):
     bot: Bot
     cron = '12 * * * *'
+    group: int
 
     async def on_load(self):
         self.bot = Bot()
+        self.group = Storage('core')['def_group']
         logger.info('CronPlugin loaded')
 
     async def on_cron(self):
@@ -73,7 +76,7 @@ class CronPlugin(Plugin):
             hot_list = await get_zhihu_hot_list()
             message = "知乎热榜:\n" + "\n".join(
                 [f"{index}: {title}\n链接: {url}" for index, (title, url) in enumerate(hot_list, 1)])
-            await self.bot.send_private_message(114514, message)
+            await self.bot.send_group_message(self.group, message)
         else:
             logger.info('Cron triggered but not at the xth minute of specified hours')
 
