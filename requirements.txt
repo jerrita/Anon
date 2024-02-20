@@ -4,7 +4,6 @@ aiocron~=1.8
 
 # Example plugins dependencies
 pytz~=2024.1
-beautifulsoup4~=4.12.3
 
 # Extras
 aiohttp~=3.9.3
