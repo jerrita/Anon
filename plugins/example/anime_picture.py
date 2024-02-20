@@ -1,11 +1,10 @@
+import aiohttp
+
 from anon.event import MessageEvent
 from anon.message import Image
 from anon.plugin import PluginManager
-import aiohttp
-import asyncio
 
 pm = PluginManager()
-
 
 
 async def fetch_and_save_image():
@@ -20,6 +19,6 @@ async def fetch_and_save_image():
 
 @pm.register_event([MessageEvent])
 async def handle_message(event: MessageEvent):
-    if event.msg.text() == '来点色图':
+    if event.msg.text() in ['来点色图', '来点涩图']:
         img_url = await fetch_and_save_image()
-        await event.reply(Image(img_url))
+        await event.reply(Image(img_url), quote=False)
