@@ -1,4 +1,4 @@
-from typing import List, Union, Type
+from typing import List, Union
 
 from .elements import *
 from ..logger import logger
@@ -26,11 +26,13 @@ class Message(List[ChainObj]):
         return cls([ChainObj.encode(item) for item in raw])
 
     @staticmethod
-    def convert(origin: Union[str, List[Union[str, Type[ChainObj]]]]) -> 'Message':
+    def convert(origin: Union[str, 'ChainObj', List[Union[str, 'ChainObj']]]) -> 'Message':
         if isinstance(origin, Message):
             return origin
         if isinstance(origin, str):
             return Message([Text(origin)])
+        if isinstance(origin, ChainObj):
+            return Message([origin])
         res = Message([])
         for i in origin:
             if isinstance(i, str):
@@ -54,8 +56,7 @@ class Message(List[ChainObj]):
         return ' '.join(i.__repr__() for i in self)
 
 
-Convertable = Union[str, Message, List[Union[str, Type[ChainObj]]]]
+Convertable = Union[str, Message, 'ChainObj', list]
 
 if __name__ == '__main__':
     msg = Message([Text('Hello'), At(123)])
-    print(msg.decode())

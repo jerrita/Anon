@@ -1,5 +1,6 @@
 # https://whitechi73.github.io/OpenShamrock/message/format.html
 
+import base64
 from enum import IntEnum, Enum
 
 from ..logger import logger
@@ -142,11 +143,13 @@ class Image(ChainObj):
     sub_type: ImageCategory
     img_type: ImageType
 
-    def __init__(self, file: str, sub_type: ImageCategory = ImageCategory.NORMAL, img_type: ImageType = ImageType.SHOW,
-                 url: str = ''):
+    def __init__(self, url: str = '', sub_type: ImageCategory = ImageCategory.NORMAL,
+                 img_type: ImageType = ImageType.SHOW,
+                 file: str = ''):
         """
-        图片类型，请以 `Protocol://` 开头
+        图片类型，建议直接使用 url，或是用 file 参数，框架会自行适配不同 file 类型
 
+        :param url: image url
         :param file: `http(s)`, `file`, `base64`
         """
         super().__init__('image')
@@ -156,21 +159,25 @@ class Image(ChainObj):
         self.img_type = img_type
 
     def data(self) -> dict:
-        return {
-            'file': self.file,
-            'url': self.url,
-            'type': self.img_type,
-            'subType': self.sub_type,
+        data = {
+            'type': self.img_type.value,
+            'subType': self.sub_type.value,
         }
+        if self.url:
+            data['file'] = self.url
+        else:
+            data['file'] = self.file
+        if data['file'].startswith('file'):
+            with open(data['file'][7:], 'rb') as f:
+                image = f.read()
+                data['file'] = f'base64://{base64.b64encode(image).decode()}'
+        return data
 
     def __repr__(self):
-        return f'[Image: {self.file}]'
+        return f'[Image:{self.file if not self.url else self.url}]'
 
 
 if __name__ == '__main__':
     a = At(114514191)
     b = Text('Hello world!')
     c = Image('url://a.webp')
-    print(a.decode())
-    print(b.decode())
-    print(c.decode())
