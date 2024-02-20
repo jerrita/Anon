@@ -19,7 +19,7 @@ class Storage:
 
     def __init__(self, module: str):
         if self._initialized:
-            logger.info(f'Storage {module} already initialized.')
+            logger.debug(f'Storage {module} already initialized.')
             return
         logger.info(f'Initializing storage {module}')
 

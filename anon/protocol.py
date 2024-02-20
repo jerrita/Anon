@@ -46,6 +46,7 @@ class Protocol:
             'echo': _uuid
         }
         queue = asyncio.Queue()
+        logger.debug(f'Session created: {_uuid}')
 
         self._pending_requests[_uuid] = queue
         await self.ws.send(json.dumps(raw))
