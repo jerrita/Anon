@@ -37,8 +37,6 @@ class Bot(Protocol, SingletonObject):
         self._loop = asyncio.get_event_loop()
         if sys.platform != 'win32':  # 如果不是 Windows 平台
             self._loop.add_signal_handler(signal.SIGTERM, lambda: self._loop.create_task(self.sig_term()))
-        else:
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         if not self._loop.run_until_complete(self.validate()):
             logger.critical('Something wrong, check your endpoint and token.')
             raise AnonError('Bot init')

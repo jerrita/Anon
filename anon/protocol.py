@@ -6,7 +6,7 @@ from typing import Dict, List
 
 import websockets
 from websockets import WebSocketClientProtocol
-
+from websockets import ConnectionClosedError
 from .common import *
 from .logger import logger
 from .message import Message, Convertable
@@ -90,8 +90,12 @@ class Protocol:
                         task = asyncio.create_task(self.broad_cast(raw))
                         tasks.add(task)
                         task.add_done_callback(tasks.discard)
+            except ConnectionClosedError:
+                logger.warn('WS Closed. Reconnecting...')
+                self.ws = await websockets.connect(self.end_point, extra_headers={
+                    "Authorization": self.token
+                })
             except Exception as e:
-                # TODO: We can sleep and break here, for timeout error handling
                 logger.critical(f'Something went wrong, please open an issue with debug logs.')
                 raise AnonError(f'Event loop: {e}')
 
