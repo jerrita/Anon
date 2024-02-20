@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 import asyncio
 import json
 import uuid
 from asyncio import Queue
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List
 
 import websockets
 from websockets import WebSocketClientProtocol
@@ -12,9 +10,6 @@ from websockets import WebSocketClientProtocol
 from .common import *
 from .logger import logger
 from .message import Message, Convertable
-
-if TYPE_CHECKING:
-    from .event import Event
 
 
 class Protocol:
@@ -28,7 +23,7 @@ class Protocol:
         self._loop = asyncio.new_event_loop()
         self._group_cache = {}
 
-    def broad_cast(self, event: Event):
+    async def broad_cast(self, event_raw: dict):
         raise NotImplementedError
 
     async def send_request(self, func: str, data: dict) -> dict | list:
@@ -74,9 +69,10 @@ class Protocol:
             logger.warn(f'Validate with error: {e}')
             return False
 
-    async def event_looper(self):
-        from .event import EventFactory
+    async def event_loop(self):
         logger.info('Start event looper.')
+
+        tasks = set()
 
         while True:
             try:
@@ -91,8 +87,9 @@ class Protocol:
                         else:
                             logger.warn(f'Received a message with unknown UUID: {_uuid}')
                     else:
-                        event = EventFactory(self, raw)
-                        self.broad_cast(event)
+                        task = asyncio.create_task(self.broad_cast(raw))
+                        tasks.add(task)
+                        task.add_done_callback(tasks.discard)
             except Exception as e:
                 # TODO: We can sleep and break here, for timeout error handling
                 logger.critical(f'Something went wrong, please open an issue with debug logs.')
@@ -157,6 +154,8 @@ class Protocol:
         :param gid: 群号
         :return:
         """
+        if gid in self._group_cache:
+            return self._group_cache[gid]
         data: dict = await self.send_request('get_group_info', {'group_id': gid})
         group = GroupInfo(**data)
         self._group_cache[gid] = group

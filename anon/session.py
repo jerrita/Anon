@@ -3,7 +3,7 @@ import signal
 import sys
 
 from .common import AnonError, VERSION, SingletonObject, AnonExtraConfig
-from .event import Event, MessageEvent
+from .event import MessageEvent, EventFactory
 from .logger import logger
 from .plugin import PluginManager, Plugin
 from .protocol import Protocol
@@ -67,15 +67,16 @@ class Bot(Protocol, SingletonObject):
                     logger.critical(f'Plugin register error: {e}')
                     raise AnonError('plugin')
 
-    def broad_cast(self, e: Event):
-        if isinstance(e, MessageEvent):
-            logger.info(e)
+    async def broad_cast(self, event_raw: dict):
+        event = await EventFactory.factory(self, event_raw)
+        if isinstance(event, MessageEvent):
+            logger.info(event)
         else:
-            logger.debug(f'recv: {e}')
-        self.pm.broad_cast(e)
+            logger.debug(f'recv: {event}')
+        self.pm.broad_cast(event)
 
     def loop(self):
         try:
-            self._loop.run_until_complete(self.event_looper())
+            self._loop.run_until_complete(self.event_loop())
         except Exception as e:
             logger.critical(f'Loop error: {e}')

@@ -6,12 +6,15 @@ from ..protocol import Protocol
 
 
 class MessageEventFactory:
-    def __new__(cls, proto: Protocol, raw: dict):
+    @classmethod
+    async def factory(cls, proto: Protocol, raw: dict):
         _type = raw.get('message_type')
         if _type == 'private':
             return PrivateMessage(raw)
         if _type == 'group':
-            raw['group_name'] = proto.cached_group_name(raw.get('group_id'))
+            group_info = await proto.get_group_info(raw.get('group_id'))
+            raw['group_info'] = group_info
+            raw['group_name'] = group_info.group_name
             return GroupMessage(raw)
         logger.warn(f'Unsupported MessageEvent type: {_type}')
         return MessageEvent(raw)
@@ -70,6 +73,7 @@ class GroupMessage(MessageEvent):
         super().__init__(raw)
         self.gid = raw.get('group_id')
         self.group_name = raw.get('group_name')
+        self.group_info = raw.get('group_info')
 
     def __repr__(self):
         return f'{self.group_name}({self.gid}) -> ' + super().__repr__()
