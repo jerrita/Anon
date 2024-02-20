@@ -3,7 +3,7 @@ import os
 import aiohttp
 from anon.event import MessageEvent
 from anon.logger import logger
-from anon.message import Image
+from anon.message import Image, ImageCategory
 from anon.plugin import PluginManager
 
 pm = PluginManager()
@@ -11,11 +11,14 @@ pm = PluginManager()
 async def fetch_and_save_image(tag: list):
     params = {
         "r18": 0,
-        "level": 0-3,
-        "tag": tag
+        "level": 0-3
     }
+    if tag:
+        params["tag"] = tag
+    logger.info(f"tag:{tag},params:{params}")
     async with aiohttp.ClientSession() as session:
         async with session.get("https://lolisuki.cn/api/setu/v1", params=params) as response:
+            logger.info(f"params:{params}")
             datas = await response.json()
         logger.info(datas)
 
@@ -42,4 +45,4 @@ async def handle_message(event: MessageEvent):
         if img_url is None:
             await event.reply("图库查找无结果", quote=True)
         else:
-                await event.reply(Image(img_url), quote=False)
+                await event.reply(Image(img_url,sub_type=ImageCategory.MEME), quote=False)
