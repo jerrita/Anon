@@ -6,6 +6,7 @@ import aiohttp
 from pytz import timezone
 
 from anon import Bot, PluginManager, Plugin
+from anon.event import MessageEvent
 from anon.logger import logger
 from anon.storage import Storage
 
@@ -45,20 +46,22 @@ async def get_zhihu_hot_list(date_str):
                     return None
 
 
-class CronPlugin(Plugin):
+class ZhihuPlugin(Plugin):
     bot: Bot
     cron = '10 8-22/2 * * *'
     group: int
+    storage: Storage
 
     async def on_load(self):
         self.bot = Bot()
         self.group = Storage('core')['def_group']
+        self.storage = Storage('example.zhihu')
+        if not self.storage['topn']:
+            self.storage['topn'] = 5
         logger.info('CronPlugin loaded')
 
     async def on_cron(self):
         shanghai_tz = timezone('Asia/Shanghai')
-        current_time = datetime.now(shanghai_tz)
-        hour = current_time.hour
         today = datetime.now(shanghai_tz)
         date_str = today.strftime('%Y-%m-%d')
 
@@ -66,7 +69,7 @@ class CronPlugin(Plugin):
 
         # 获取知乎热榜并发送消息
         hot_list = await get_zhihu_hot_list(date_str)
-        top_n = 10
+        top_n = self.storage['topn']
         if hot_list:
             # 将热榜切分为每10个一组，应对手机QQ一条消息超过10个就无法渲染超链接的bug
             chunk_size = 10
@@ -81,8 +84,11 @@ class CronPlugin(Plugin):
                 except Exception as e:
                     logger.error(f"发送消息时出错: {e}")
 
-        # await self.bot.send_private_message(Storage('core')['def_user'], message_chunk)
+    async def on_event(self, event: MessageEvent):
+        if event.raw.startswith('s/zhihu'):
+            self.storage['topn'] = int(event.raw[7:].strip())
+            await event.reply(f'Zhihu topn set to: {self.storage["topn"]}')
 
 
 # 注册插件
-PluginManager().register_plugin(CronPlugin())
+PluginManager().register_plugin(ZhihuPlugin([MessageEvent]))
