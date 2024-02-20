@@ -10,6 +10,7 @@ if __name__ == '__main__':
     anon.register_plugins([
         'plugins.example.ping',
         'plugins.corpus.bang',
-        'plugins.example.zhihu'
+        'plugins.example.zhihu',
+        'plugins.example.anime_picture'
     ])
     anon.loop()
