@@ -10,10 +10,10 @@ from anon.logger import logger
 from anon.storage import Storage
 
 
-
 async def fetch(session, url):
     async with session.get(url) as response:
         return await response.text()
+
 
 async def get_zhihu_hot_list(date_str):
     url = f'https://raw.githubusercontent.com/justjavac/zhihu-trending-hot-questions/master/raw/{date_str}.json'
@@ -71,7 +71,7 @@ class CronPlugin(Plugin):
             # 将热榜切分为每10个一组，应对手机QQ一条消息超过10个就无法渲染超链接的bug
             chunk_size = 10
             for i in range(0, len(hot_list[:top_n]), chunk_size):
-                logger.info(f'第{i+1}组, chunk_size={chunk_size}, len(hot_list[:top_n])={len(hot_list[:top_n])}')
+                logger.info(f'第{i + 1}组, chunk_size={chunk_size}, len(hot_list[:top_n])={len(hot_list[:top_n])}')
                 message_chunk = "知乎热榜:\n" + "\n".join(
                     [f"{index}. {item['title']}\n链接: {item['url']}" for index, item in
                      enumerate(hot_list[i:i + chunk_size], i + 1)])
@@ -82,7 +82,6 @@ class CronPlugin(Plugin):
                     logger.error(f"发送消息时出错: {e}")
 
         # await self.bot.send_private_message(Storage('core')['def_user'], message_chunk)
-
 
 
 # 注册插件

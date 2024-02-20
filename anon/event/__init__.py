@@ -1,2 +1,2 @@
 from .event import Event, EventFactory
-from .message import MessageEvent
+from .message import MessageEvent, PrivateMessage, GroupMessage
