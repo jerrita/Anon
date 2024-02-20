@@ -1,6 +1,7 @@
 import asyncio
 import os
 import signal
+import sys
 
 from .common import AnonError, VERSION, SingletonObject, AnonExtraConfig
 from .event import Event, MessageEvent
@@ -25,6 +26,7 @@ class Bot(Protocol, SingletonObject):
         :param token: token
         :param timeout: 收到 SIGTERM 的等待插件停止时间
         """
+
         if self._initialized:
             return
         super().__init__(ep, token)
@@ -34,8 +36,10 @@ class Bot(Protocol, SingletonObject):
         Storage('core').update(self.extras.data())
         logger.info(f'Anon created => {ep}, validating...')
         self._loop = asyncio.get_event_loop()
-        if os.name != 'nt':  # 如果不是 Windows 平台
+        if sys.platform != 'win32':  # 如果不是 Windows 平台
             self._loop.add_signal_handler(signal.SIGTERM, lambda: self._loop.create_task(self.sig_term()))
+        else:
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         if not self._loop.run_until_complete(self.validate()):
             logger.critical('Something wrong, check your endpoint and token.')
             raise AnonError('Bot init')
