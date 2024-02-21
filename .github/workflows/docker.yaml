@@ -6,8 +6,8 @@ on:
       - master
     paths:
       - 'requirements.txt'
-      - 'anon/*'
-      - 'plugins/*'
+      - 'anon/**'
+      - 'plugins/**'
       - '.github/workflows/docker.yaml'
   workflow_dispatch:
 

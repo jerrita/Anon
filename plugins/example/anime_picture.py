@@ -20,7 +20,7 @@ if not storage['param']:
 
 
 async def fetch_and_save_image(tag: list):
-    params = storage['param']
+    params = storage['param'].copy()
     if tag:
         params["tag"] = tag
     logger.info(f"tag:{tag},params:{params}")
