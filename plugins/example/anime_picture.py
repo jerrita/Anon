@@ -1,6 +1,5 @@
 import json
 import re
-from typing import Optional
 
 import aiohttp
 import chinese2digits as c2d
@@ -22,7 +21,7 @@ if not storage['param']:
     }
 
 
-async def fetch_and_save_image(tag: list, num: int = 1) -> Optional[list]:
+async def fetch_and_save_image(tag: list, num: int = 1) -> list:
     params = storage['param'].copy()
     params["num"] = num if 1 < num <= 5 else 1
     if tag:
@@ -34,13 +33,9 @@ async def fetch_and_save_image(tag: list, num: int = 1) -> Optional[list]:
             datas = await response.json()
         logger.info(datas)
 
-        # 检查是否有数据返回
-        if not datas["data"]:
-            return None
-
         img_url_list = []
-        for i_url in range(num):
-            img_url = datas["data"][i_url]["urls"]["original"]
+        for data in datas['data']:
+            img_url = data['urls']['original']
             img_url = img_url.replace('i.pixiv.cat', 'i.pixiv.re')
             img_url_list.append(img_url)
         return img_url_list
@@ -63,7 +58,7 @@ async def handle_message(event: MessageEvent):
         tag = parts[1:]  # 获取所有的标签
         logger.info(tag)
         img_url = await fetch_and_save_image(tag)
-        if img_url is None:
+        if not img_url:
             await event.reply("图库查找无结果", quote=True)
         else:
             await event.reply(Image(img_url[0]), quote=False)
@@ -78,7 +73,7 @@ async def handle_message(event: MessageEvent):
             tag = match.group(2)
             logger.info(f"数量: {num}, 标签: {tag}")
             img_url = await fetch_and_save_image(tag, num)
-            if img_url is None:
+            if not img_url:
                 await event.reply("图库查找无结果", quote=True)
             else:
                 images = [Image(url) for url in img_url]
