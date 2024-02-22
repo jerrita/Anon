@@ -1,5 +1,3 @@
-import re
-
 import aiohttp
 
 from anon.event import MessageEvent
@@ -30,21 +28,7 @@ async def fetch_and_save_image(limit: bool = False) -> list:
 
 @pm.register_event([MessageEvent])
 async def cat(event: MessageEvent):
-    message = event.msg.text()
-    if re.fullmatch(r'喵+', message):
-        # 计算“喵”的数量
-        count = len(message) // len('喵')
-        if count == 1:
-            img_url = await fetch_and_save_image(False)
-            logger.info('喵')
-        elif count > 1:
-            img_url = await fetch_and_save_image(True)
-            await event.reply("不管多少个喵，只要大于1个都会返回10张图的喵~", quote=True)
-            logger.info(f'收到了{count}个喵！')
-        else:
-            return
-        index = 1
-        for i_url in img_url:
-            logger.info(f"第{index}份猫图发送中")
-            index += 1
-            await event.reply(Image(i_url), quote=False)
+    count = event.raw.count('喵')
+    if count:
+        img_urls = await fetch_and_save_image(False if count == 1 else True)
+        await event.reply([Image(url) for url in img_urls][:count])
