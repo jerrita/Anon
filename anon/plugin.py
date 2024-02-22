@@ -1,5 +1,4 @@
 import asyncio
-import threading
 from typing import List, Type
 
 import aiocron
@@ -9,14 +8,13 @@ from .event import Event
 from .logger import logger
 
 
-class CronThread(threading.Thread):
+class CronThread:
     loop: asyncio.AbstractEventLoop
     tasks = set()
 
     def __init__(self, loop):
         super().__init__()
         self.loop = loop
-        self.start()
 
     def add_cron(self, cron: str, func, *args):
         async def wrapper():
@@ -25,10 +23,6 @@ class CronThread(threading.Thread):
 
         task = aiocron.crontab(cron, func=wrapper, loop=self.loop)
         self.tasks.add(task)
-
-    def stop(self):
-        logger.warn('CronThread stopping...')
-        self.loop.call_soon_threadsafe(self.loop.stop)
 
 
 class Plugin:
@@ -105,7 +99,6 @@ class PluginManager(SingletonObject):
 
     async def shutdown(self, timeout: int):
         logger.info(f'Plugins shutting down, timeout = {timeout}s...')
-        self._cron.stop()
         for plugin in self.plugins:
             await self._loop.create_task(plugin.on_shutdown())
         for i in range(timeout):
