@@ -5,8 +5,9 @@ from asyncio import Queue
 from typing import Dict, List
 
 import websockets
-from websockets import WebSocketClientProtocol
 from websockets import ConnectionClosedError
+from websockets import WebSocketClientProtocol
+
 from .common import *
 from .logger import logger
 from .message import Message, Convertable
@@ -83,7 +84,7 @@ class Protocol:
                         _uuid = raw['echo']
                         if _uuid in self._pending_requests:
                             logger.debug(f'Session resume: {_uuid}')
-                            await self._pending_requests[_uuid].put(raw)
+                            self._pending_requests[_uuid].put_nowait(raw)
                         else:
                             logger.warn(f'Received a message with unknown UUID: {_uuid}')
                     else:

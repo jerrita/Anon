@@ -13,14 +13,10 @@ class CronThread(threading.Thread):
     loop: asyncio.AbstractEventLoop
     tasks = set()
 
-    def __init__(self):
+    def __init__(self, loop):
         super().__init__()
+        self.loop = loop
         self.start()
-
-    def run(self):
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-        self.loop.run_forever()
 
     def add_cron(self, cron: str, func, *args):
         async def wrapper():
@@ -96,7 +92,7 @@ class PluginManager(SingletonObject):
     def __init__(self, *args):
         if not self._initialized:
             self._loop = args[0]
-            self._cron = CronThread()
+            self._cron = CronThread(self._loop)
             self._initialized = True
             logger.info('PluginManager initialized.')
 
