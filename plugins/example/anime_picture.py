@@ -70,7 +70,7 @@ async def handle_message(event: MessageEvent):
                 num = int(c2d.chineseToDigits(quantity))
             else:
                 num = int(quantity)
-            tag = match.group(2)
+            tag = match.group(2).strip().split(' ')
             logger.info(f"数量: {num}, 标签: {tag}")
             img_url = await fetch_and_save_image(tag, num)
             if not img_url:
