@@ -68,21 +68,18 @@ async def handle_message(event: MessageEvent):
         else:
             await event.reply(Image(img_url[0]), quote=False)
     elif parts:
-        match = re.match(r'来(\d+|零|两|一|二|三|四|五|六|七|八|九)(张|份)(色图|涩图)', parts[0])
+        match = re.match(r'[色涩]图 *([\d零两一二三四五六七八九])[张份](.*)', message)
         if match:
             quantity = match.group(1)
-            try:
-                num = int(quantity)
-            except:
+            if quantity in '零两一二三四五六七八九':
                 num = int(c2d.chineseToDigits(quantity))
-            tag = parts[1:] if len(parts) > 1 else None
+            else:
+                num = int(quantity)
+            tag = match.group(2)
             logger.info(f"数量: {num}, 标签: {tag}")
             img_url = await fetch_and_save_image(tag, num)
             if img_url is None:
                 await event.reply("图库查找无结果", quote=True)
             else:
-                index = 1
-                for i_url in img_url:
-                    logger.info(f"第{index}份色图发送中")
-                    index += 1
-                    await event.reply(Image(i_url), quote=False)
+                images = [Image(url) for url in img_url]
+                await event.reply(images)
