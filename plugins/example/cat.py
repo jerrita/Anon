@@ -9,7 +9,8 @@ from anon.plugin import PluginManager
 
 pm = PluginManager()
 
-async def fetch_and_save_image(limit:bool = False)->list :
+
+async def fetch_and_save_image(limit: bool = False) -> list:
     params = {}
     num = 10 if limit else 1
     params["limit"] = num
@@ -38,11 +39,12 @@ async def cat(event: MessageEvent):
             logger.info('喵')
         elif count > 1:
             img_url = await fetch_and_save_image(True)
-            await event.reply({"不管多少个喵，只要大于1个都会返回10张图的喵~"}, quote=True)
+            await event.reply("不管多少个喵，只要大于1个都会返回10张图的喵~", quote=True)
             logger.info(f'收到了{count}个喵！')
+        else:
+            return
         index = 1
         for i_url in img_url:
             logger.info(f"第{index}份猫图发送中")
             index += 1
             await event.reply(Image(i_url), quote=False)
-
