@@ -1,12 +1,14 @@
 import json
 import re
-import chinese2digits as c2d
+from typing import Optional
+
 import aiohttp
+import chinese2digits as c2d
 
 from anon import Storage
 from anon.event import MessageEvent
 from anon.logger import logger
-from anon.message import Image, ImageCategory
+from anon.message import Image
 from anon.plugin import PluginManager
 
 pm = PluginManager()
@@ -20,15 +22,14 @@ if not storage['param']:
     }
 
 
-async def fetch_and_save_image(tag: list, num:int = 1)->list :
+async def fetch_and_save_image(tag: list, num: int = 1) -> Optional[list]:
     params = storage['param'].copy()
     params["num"] = num if 1 < num <= 5 else 1
     if tag:
         params["tag"] = tag
     logger.info(f"tag:{tag},params:{params}")
-    proxy_url = "http://111.177.63.86:8888"
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://lolisuki.cn/api/setu/v1", params=params, proxy=proxy_url) as response:
+        async with session.get("https://lolisuki.cn/api/setu/v1", params=params) as response:
             logger.info(f"params:{params}")
             datas = await response.json()
         logger.info(datas)
