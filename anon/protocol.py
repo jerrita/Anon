@@ -11,6 +11,7 @@ from websockets import WebSocketClientProtocol
 from .common import *
 from .logger import logger
 from .message import Message, Convertable
+from .utils import any_data
 
 
 class Protocol:
@@ -51,6 +52,7 @@ class Protocol:
 
         if res.get('status') != 'ok':
             logger.warn(f'Send request failed with error: {raw.get("msg")}')
+            return {}
 
         return res.get('data')
 
@@ -179,3 +181,68 @@ class Protocol:
             self._group_cache[group.group_id] = group
             res.append(group)
         return res
+
+    async def shamrock_download_file(self, url: str = None, name: str = None, base64: str = None, thread_cnt: int = 2,
+                                     headers: str = None) -> str:
+        """
+        用法二选一：
+
+        1.仅发送url，由Shamrock自己访问该url来下载文件
+
+        2.仅发送文件base64，Shamrock解码后直接转存为文件
+
+        url和base64至少一个不能为空，同时发送url和base64时，使用url
+
+        :param url: 文件链接
+        :param name: 保存文件重命名（可选）
+        :param base64: 文件 base64
+        :param thread_cnt: 下载线程数
+        :param headers: headers
+        :return: 文件存储路径（Shamrock 中）
+        """
+        if not url and not base64:
+            logger.warn('Download file without url and base64!')
+            return ''
+
+        data = any_data({
+            "url": url,
+            "name": name,
+            "base64": base64,
+            "thread_cnt": thread_cnt,
+            "headers": headers
+        })
+
+        res = await self.send_request('download_file', data)
+        return res.get('file')
+
+    async def upload_private_file(self, uid: int, file: str = None, name: str = None) -> int:
+        """
+        上传私聊文件
+
+        :param uid: 私聊对象 qq 号
+        :param file: 文件路径
+        :param name: 文件名
+        :return: file md5
+        """
+        data = any_data({
+            "user_id": uid,
+            "file": file,
+            "name": name
+        })
+        return (await self.send_request('upload_private_file', data)).get('md5')
+
+    async def upload_group_file(self, gid: int, file: str = None, name: str = None) -> int:
+        """
+        上传群文件
+
+        :param gid: 群号
+        :param file: 文件路径
+        :param name: 文件名
+        :return: file md5
+        """
+        data = any_data({
+            "group_id": gid,
+            "file": file,
+            "name": name
+        })
+        return (await self.send_request('upload_group_file', data)).get('md5')
