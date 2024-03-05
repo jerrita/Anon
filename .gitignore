@@ -3,6 +3,7 @@ __pycache__/
 *$py.class
 test.py
 storage/
+.venv/
 
 .idea/
 .vscode/

@@ -79,6 +79,26 @@ class MyPlugin(Plugin):
 PluginManager().register_plugin(MyPlugin([MessageEvent]))
 ```
 
+3. 你也可以直接使用 [CommandManager](docs/cmd_manager.md) 进行快速将开发，例如
+
+```python
+from anon.plugin import CommandManager
+from anon.event import MessageEvent
+import datetime
+
+date_usage = """Usage: date
+此命令无需任何参数"""
+
+
+@CommandManager().register_handler('date', '展示现在的时间', usage=date_usage, alter=['现在几点了'])
+async def date(event: MessageEvent, args):
+    await event.reply(str(datetime.datetime.now()))
+```
+
+## 设计参考文档
+
+参见 [docs](docs/)
+
 ## 启动方式
 
 ### 1. 混合模式
@@ -122,8 +142,9 @@ docker run --name anon \
 
 - [x] 基础功能 (插件系统，基本组件)
 - [x] 容器化部署
+- [x] Command Manager
+- [x] 文件上传
 - [ ] 权限管理
-- [ ] 视频/语音
 - [ ] 元事件/系统消息
 - [ ] ???
 

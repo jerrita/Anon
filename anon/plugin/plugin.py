@@ -3,9 +3,9 @@ from typing import List, Type
 
 import aiocron
 
-from .common import SingletonObject, AnonError
-from .event import Event
-from .logger import logger
+from ..common import SingletonObject, AnonError
+from ..event import Event
+from ..logger import logger
 
 
 class CronThread:
@@ -63,6 +63,14 @@ class Plugin:
         self.nop()
         return False
 
+    def prevent_after(self, event: Event) -> bool:
+        """
+        是否阻止事件后向传递，插件优先级为加载顺序，内置插件最先加载
+        示例使用方式见 builtins.CmdPlugin
+        """
+        self.nop()
+        return False
+
     async def on_event(self, event: Event):
         pass
 
@@ -88,6 +96,10 @@ class PluginManager(SingletonObject):
             self._loop = args[0]
             self._cron = CronThread(self._loop)
             self._initialized = True
+            logger.info('Loading builtin plugins...')
+            from .builtins import BUILTIN_PLUGINS
+            for plugin in BUILTIN_PLUGINS:
+                self.register_plugin(plugin)
             logger.info('PluginManager initialized.')
 
     def broad_cast(self, event: Event):
@@ -96,6 +108,8 @@ class PluginManager(SingletonObject):
                 task = asyncio.create_task(plugin.on_event(event))
                 self.tasks.add(task)
                 task.add_done_callback(self.tasks.discard)
+                if plugin.prevent_after(event):
+                    return
 
     async def shutdown(self, timeout: int):
         logger.info(f'Plugins shutting down, timeout = {timeout}s...')

@@ -13,7 +13,7 @@ if [ ! -d /app/anon ]; then
 fi
 
 if [ -f /app/requirements.txt ] && [ ! -f /app/.installed ]; then
-  pip install -r /app/requirements.txt
+  uv pip install -r /app/requirements.txt
 fi
 
 cd /app && python main.py
