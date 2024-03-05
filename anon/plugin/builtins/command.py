@@ -93,7 +93,8 @@ class CommandPlugin(Plugin):
     _manager: CommandManager
 
     def prevent_after(self, event: MessageEvent) -> bool:
-        return self._manager.interest(event)
+        # event_filter 已经过滤了可匹配命令
+        return True
 
     def event_filter(self, event: MessageEvent) -> bool:
         return not self._manager.interest(event)
