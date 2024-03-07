@@ -80,7 +80,10 @@ class Plugin(StructClass):
         return (isinstance(event, MessageEvent)
                 and self.match_cmd(event.msg.text_only))
 
-    async def on_cmd(self, event: MessageEvent, args: list):
+    async def on_cmd(self, event: MessageEvent, args: list) -> bool:
+        """
+        若出现异常，应返回 True，此时会自动回复插件用法
+        """
         pass
 
     async def on_event(self, event: Event):
@@ -114,11 +117,16 @@ class PluginManager(SingletonObject):
                 self.register_plugin(plugin)
             logger.info('PluginManager initialized.')
 
+    @staticmethod
+    async def cmd_wrapper(plugin: Plugin, event: MessageEvent):
+        if await plugin.on_cmd(event, event.msg.text_only.split()):
+            await event.reply(plugin.usage, quote=False)
+
     def broad_cast(self, event: Event):
         for plugin in self.plugins:
             if not plugin.default_filter(event) and not plugin.event_filter(event):
                 if isinstance(event, MessageEvent) and plugin.match_cmd(event.msg.text_only):
-                    task = asyncio.create_task(plugin.on_cmd(event, event.msg.text_only.split()))
+                    task = asyncio.create_task(self.cmd_wrapper(plugin, event))
                 else:
                     task = asyncio.create_task(plugin.on_event(event))
                 self.tasks.add(task)

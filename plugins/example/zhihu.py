@@ -48,9 +48,12 @@ async def get_zhihu_hot_list(date_str):
 
 class ZhihuPlugin(Plugin):
     bot: Bot
-    cron = '10 8-22/2 * * *'
+    cron = '10 8-20/4 * * *'
     group: int
     storage: Storage
+    brif = '定时知乎热榜'
+    usage = 'Usage: zhihu set/get <num>\n设置知乎热榜 topn'
+    keywords = ['zhihu']
 
     async def on_load(self):
         self.bot = Bot()
@@ -71,7 +74,7 @@ class ZhihuPlugin(Plugin):
         hot_list = await get_zhihu_hot_list(date_str)
         top_n = self.storage['topn']
         if hot_list:
-            # 将热榜切分为每10个一组，应对手机QQ一条消息超过10个就无法渲染超链接的bug
+            # 将热榜切分为每 10 个一组，应对手机 QQ 一条消息超过 10 个就无法渲染超链接的 bug
             chunk_size = 10
             for i in range(0, len(hot_list[:top_n]), chunk_size):
                 logger.info(f'第{i + 1}组, chunk_size={chunk_size}, len(hot_list[:top_n])={len(hot_list[:top_n])}')
@@ -84,10 +87,19 @@ class ZhihuPlugin(Plugin):
                 except Exception as e:
                     logger.error(f"发送消息时出错: {e}")
 
-    async def on_event(self, event: MessageEvent):
-        if event.raw.startswith('s/zhihu'):
-            self.storage['topn'] = int(event.raw[7:].strip())
-            await event.reply(f'Zhihu topn set to: {self.storage["topn"]}')
+    async def on_cmd(self, event: MessageEvent, args) -> bool:
+        if len(args) < 2:
+            return True
+
+        if args[1] == 'get':
+            await event.reply(f'当前 topn 设置为: {self.storage["topn"]}')
+        else:
+            try:
+                n = int(args[2])
+                self.storage['topn'] = n
+                await event.reply(f'知乎 topn 设置为: {n}')
+            except:
+                return True
 
 
 # 注册插件

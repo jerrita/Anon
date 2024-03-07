@@ -23,7 +23,8 @@ async def date(event: MessageEvent, args):
 
 1. 在匹配到对应命令后，`PluginManager` 会阻止消息向后优先级的插件传递，意味着每条匹配的消息最多只会有一个处理函数被调用。
 2. 这意味着重名命令，总会用最先注册的插件处理。
-3. 如果你仍想让消息继续向下传递，则你应手动创建插件，例如:
+3. on_cmd 若返回 True 值，则会自动回复此插件的 Usage，这在错误处理中应该有用。
+4. 如果你仍想让消息继续向下传递，则你应手动创建插件，例如:
 
 ```python
 from anon.event import MessageEvent, Event
