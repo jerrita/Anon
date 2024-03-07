@@ -3,8 +3,8 @@ from typing import List, Type
 
 import aiocron
 
-from ..common import SingletonObject, AnonError
-from ..event import Event
+from ..common import SingletonObject, AnonError, StructClass
+from ..event import Event, MessageEvent
 from ..logger import logger
 
 
@@ -25,15 +25,25 @@ class CronThread:
         self.tasks.add(task)
 
 
-class Plugin:
-    interested: List[Type[Event]]
+class Plugin(StructClass):
+    interested: List[Type[Event]] = []
     rev: bool = False
+    enabled: bool = True  # WIP
     cron: str = None
+    brif: str = ''
+    usage: str = ''
+    keywords: list = []
 
-    def __init__(self, interested: List[Type[Event]] = None):
-        if interested is None:
-            interested = []
-        self.interested = interested
+    def __init__(self, interested: List[Type[Event]] = None, **kwargs):
+        super().__init__(**kwargs)
+        if interested is not None:
+            self.interested = interested
+
+    def match_cmd(self, txt: str) -> bool:
+        """
+        是否需要响应 CMD
+        """
+        return any(map(lambda x: txt.startswith(x), self.keywords))
 
     def nop(self):
         pass
@@ -65,11 +75,13 @@ class Plugin:
 
     def prevent_after(self, event: Event) -> bool:
         """
-        是否阻止事件后向传递，插件优先级为加载顺序，内置插件最先加载
-        示例使用方式见 builtins.CmdPlugin
+        是否阻止事件后向传递，插件优先级为加载顺序
         """
-        self.nop()
-        return False
+        return (isinstance(event, MessageEvent)
+                and self.match_cmd(event.msg.text_only))
+
+    async def on_cmd(self, event: MessageEvent, args: list):
+        pass
 
     async def on_event(self, event: Event):
         pass
@@ -105,7 +117,10 @@ class PluginManager(SingletonObject):
     def broad_cast(self, event: Event):
         for plugin in self.plugins:
             if not plugin.default_filter(event) and not plugin.event_filter(event):
-                task = asyncio.create_task(plugin.on_event(event))
+                if isinstance(event, MessageEvent) and plugin.match_cmd(event.msg.text_only):
+                    task = asyncio.create_task(plugin.on_cmd(event, event.msg.text_only.split()))
+                else:
+                    task = asyncio.create_task(plugin.on_event(event))
                 self.tasks.add(task)
                 task.add_done_callback(self.tasks.discard)
                 if plugin.prevent_after(event):
@@ -133,9 +148,9 @@ class PluginManager(SingletonObject):
             self._cron.add_cron(plugin.cron, plugin.on_cron)
         self.plugins.append(plugin)
 
-    def register_event(self, interest: List[Type[Event]] = None, rev: bool = False):
+    def register_event(self, interest: List[Type[Event]] = None, rev: bool = False, **kwargs):
         def register(func):
-            plugin = Plugin()
+            plugin = Plugin(**kwargs)
             plugin.interested = interest
             plugin.rev = rev
             plugin.on_event = func
@@ -143,17 +158,26 @@ class PluginManager(SingletonObject):
 
         return register
 
-    def register_onload(self):
+    def register_onload(self, **kwargs):
         def register(func):
-            plugin = Plugin()
+            plugin = Plugin(**kwargs)
             plugin.on_load = func
             self.register_plugin(plugin)
 
         return register
 
-    def register_cron(self, cron: str):
+    def register_cmd(self, keys: List[str], **kwargs):
         def register(func):
-            plugin = Plugin()
+            plugin = Plugin(**kwargs)
+            plugin.keywords = keys
+            plugin.on_cmd = func
+            self.register_plugin(plugin)
+
+        return register
+
+    def register_cron(self, cron: str, **kwargs):
+        def register(func):
+            plugin = Plugin(**kwargs)
             plugin.on_cron = func
             plugin.cron = cron
             self.register_plugin(plugin)

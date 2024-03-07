@@ -18,3 +18,23 @@ def_group: int
 - 所有 Plugin 事件均为异步。
 - 若你需要高级过滤，可以重载 `self.event_filter` 函数，同时满足默认过滤器与此过滤器的事件才会被传入 `on_event`。
 - 若你需要获取当前 bot 实例，放心使用 `from anon import Bot` 然后 `bot = Bot()` 即可，这是单例模式。
+
+# Plugin
+
+每个插件初始化时可配置项如下：
+
+```python
+class Plugin(StructClass):
+    interested: List[Type[Event]] = []
+    rev: bool = False
+    enabled: bool = True  # WIP
+    cron: str = None
+    brif: str = ''
+    usage: str = ''
+    keywords: list = []
+
+```
+
+- 若配置 cron，则在表达式触发时会调用 `plugin.on_cron` 方法。
+- keywords 非空时，匹配到关键词会触发 `on_cmd`，且阻止之后的插件触发，具体参见 [cmd_manager](./cmd_manager.md)。
+- brif 为简要说明，usage 为使用方式，这些会出现在帮助列表中。

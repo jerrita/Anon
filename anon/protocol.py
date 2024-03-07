@@ -2,7 +2,7 @@ import asyncio
 import json
 import uuid
 from asyncio import Queue
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import websockets
 from websockets import ConnectionClosedError
@@ -28,7 +28,7 @@ class Protocol:
     async def broad_cast(self, event_raw: dict):
         raise NotImplementedError
 
-    async def send_request(self, func: str, data: dict) -> dict | list:
+    async def send_request(self, func: str, data: dict) -> Union[dict, list]:
         """
         发送请求，若失败，则返回 None
 

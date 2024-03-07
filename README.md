@@ -79,20 +79,23 @@ class MyPlugin(Plugin):
 PluginManager().register_plugin(MyPlugin([MessageEvent]))
 ```
 
-3. 你也可以直接使用 [CommandManager](docs/cmd_manager.md) 进行快速将开发，例如
+3. 你也可以直接使用 [CMD 事件](docs/cmd_manager.md) 进行快速开发，例如
 
 ```python
-from anon.plugin import CommandManager
-from anon.event import MessageEvent
 import datetime
+
+from anon.event import MessageEvent
+from anon.plugin import PluginManager
 
 date_usage = """Usage: date
 此命令无需任何参数"""
 
 
-@CommandManager().register_handler('date', '展示现在的时间', usage=date_usage, alter=['现在几点了'])
+@PluginManager().register_cmd(['date', '几点了'], brif='获取现在的时间',
+                              usage=date_usage)
 async def date(event: MessageEvent, args):
     await event.reply(str(datetime.datetime.now()))
+
 ```
 
 ## 设计参考文档

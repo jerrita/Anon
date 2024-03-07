@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import List, Union
 
 from .elements import *
@@ -51,6 +52,20 @@ class Message(List[ChainObj]):
         :return: str
         """
         return self.__repr__()
+
+    @cached_property
+    def text_only(self) -> str:
+        """
+        获取去除所有非 Text 子类后剩余的文本
+        注意，一旦调用，则后续调用不可变
+        此函数主要用于解析 CMD 命令
+
+        :return: str
+        """
+        return ''.join(map(
+            lambda x: x.__repr__().strip(),
+            list(filter(lambda x: isinstance(x, Text), self))
+        ))
 
     def __repr__(self):
         return ' '.join(i.__repr__() for i in self)

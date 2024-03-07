@@ -1,3 +1,3 @@
-from .command import CommandHandler, CommandManager
+from .cmd_helper import HelpPlugin
 
-BUILTIN_PLUGINS = [command.CommandPlugin()]
+BUILTIN_PLUGINS = [HelpPlugin()]
