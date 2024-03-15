@@ -73,11 +73,12 @@ class ZhihuPlugin(Plugin):
         # 获取知乎热榜并发送消息
         hot_list = await get_zhihu_hot_list(date_str)
         top_n = self.storage['topn']
+        hot_list = hot_list[:top_n]
         if hot_list:
             # 将热榜切分为每 10 个一组，应对手机 QQ 一条消息超过 10 个就无法渲染超链接的 bug
             chunk_size = 10
-            for i in range(0, len(hot_list[:top_n]), chunk_size):
-                logger.info(f'第{i + 1}组, chunk_size={chunk_size}, len(hot_list[:top_n])={len(hot_list[:top_n])}')
+            for i in range(0, len(hot_list), chunk_size):
+                logger.info(f'第{i + 1}组, chunk_size={chunk_size}, len(hot_list[:top_n])={len(hot_list)}')
                 message_chunk = "知乎热榜:\n" + "\n".join(
                     [f"{index}. {item['title']}\n链接: {item['url']}" for index, item in
                      enumerate(hot_list[i:i + chunk_size], i + 1)])
