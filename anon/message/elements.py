@@ -3,6 +3,7 @@
 import base64
 from enum import IntEnum, Enum
 
+from ..utils import any_data
 from ..logger import logger
 
 
@@ -54,12 +55,12 @@ class ChainObj:
         if category == 'at':
             return At(**data)
         if category == 'image':
-            return Image(**{
+            return Image(**any_data({
                 'file': data['file'],
                 'url': data['url'],
-                'img_type': data['type'],
-                'sub_type': data['subType'],
-            })
+                'img_type': data.get('type'),
+                'sub_type': data.get('subType'),
+            }))
         if category == 'reply':
             return Reply(data['id'])
 

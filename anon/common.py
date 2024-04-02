@@ -1,5 +1,5 @@
 # 通用数据结构
-VERSION = '0.3.3'
+VERSION = '0.3.4'
 
 
 class AnonError(Exception):
