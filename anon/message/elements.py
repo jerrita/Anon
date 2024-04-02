@@ -41,7 +41,7 @@ class ChainObj:
         :return: 消息链封装成员
         """
         if cls != ChainObj:
-            return cls(**raw)
+            return cls(**any_data(raw))
 
         if 'type' not in raw and 'data' not in raw:
             logger.warn('Invalid data format')
