@@ -1,5 +1,5 @@
 # 通用数据结构
-VERSION = '0.3.4'
+VERSION = '0.3.5'
 
 
 class AnonError(Exception):
@@ -54,3 +54,4 @@ class AnonExtraConfig(StructClass):
     log_file: str = '/dev/null'
     def_user: int = 114514191  # 默认用户，某些示例插件会使用
     def_group: int = 114514191  # 默认群组，某些示例插件会使用
+    cmd_prefix: str = '%'  # CommandManager 默认触发前缀

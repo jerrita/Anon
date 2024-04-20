@@ -11,6 +11,7 @@ class HelpPlugin(Plugin):
         self.brif = '获取可用帮助列表'
         self.usage = usage
         self.keywords = ['help', '帮助列表', '指令列表']
+        self.prefix = self.extras.cmd_prefix
 
     async def on_cmd(self, event: MessageEvent, args: list):
         pm = PluginManager()

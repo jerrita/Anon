@@ -3,7 +3,7 @@ from typing import List, Type
 
 import aiocron
 
-from ..common import SingletonObject, AnonError, StructClass
+from ..common import SingletonObject, AnonError, StructClass, AnonExtraConfig
 from ..event import Event, MessageEvent
 from ..logger import logger
 
@@ -38,12 +38,13 @@ class Plugin(StructClass):
         super().__init__(**kwargs)
         if interested is not None:
             self.interested = interested
+        self.extras = AnonExtraConfig()
 
     def match_cmd(self, txt: str) -> bool:
         """
         是否需要响应 CMD
         """
-        return any(map(lambda x: txt.startswith(x), self.keywords))
+        return any(map(lambda x: txt.startswith(self.extras.cmd_prefix + x), self.keywords))
 
     def nop(self):
         pass
