@@ -20,7 +20,7 @@ class Protocol:
     _pending_requests: Dict[str, Queue] = {}
 
     def __init__(self, ep: str, token: str):
-        self.end_point = f'ws://{ep}'
+        self.end_point = f'ws://{ep}' if not ep.startswith('ws') else ep
         self.token = token
         self._loop = asyncio.new_event_loop()
         self._group_cache = {}

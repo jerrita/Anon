@@ -1,11 +1,13 @@
 import asyncio
-from typing import List, Type
+from typing import List, Type, Union
 
 import aiocron
 
 from ..common import SingletonObject, AnonError, StructClass, AnonExtraConfig
-from ..event import Event, MessageEvent
+from ..event import Event, MessageEvent, GroupMessage
 from ..logger import logger
+from ..message import ChainObj, Text
+from ..perm import Permission
 
 
 class CronThread:
@@ -28,6 +30,12 @@ class CronThread:
 class Plugin(StructClass):
     interested: List[Type[Event]] = []
     rev: bool = False
+
+    # groups 根据 white_list 的值确定黑白名单
+    perm: Permission = Permission.User
+    groups: List[str] = []
+    white_list: bool = False
+
     enabled: bool = True  # WIP
     cron: str = None
     brif: str = ''
@@ -51,11 +59,24 @@ class Plugin(StructClass):
 
     def default_filter(self, event: Event) -> bool:
         """
-        默认事件过滤器，返回 interested 事件
+        默认事件过滤器，若权限匹配，返回 interested 事件
 
         :param event: 事件
-        :return: 是否需要过滤
+        :return: 是否需要过滤 (跳过插件执行)
         """
+        if isinstance(event, GroupMessage):
+            if self.white_list:
+                if not event.gid in self.groups:
+                    return True
+            else:
+                if event.gid in self.groups:
+                    return True
+
+        if isinstance(event, MessageEvent):
+            usr_perm = AnonExtraConfig().get_perm(event.sender.user_id)
+            if usr_perm > self.perm:
+                return True
+
         if len(self.interested) == 0:
             return self.rev
 
@@ -81,7 +102,7 @@ class Plugin(StructClass):
         return (isinstance(event, MessageEvent)
                 and self.match_cmd(event.msg.text_only))
 
-    async def on_cmd(self, event: MessageEvent, args: list) -> bool:
+    async def on_cmd(self, event: MessageEvent, args: List[Union[str, ChainObj]]) -> bool:
         """
         若出现异常，应返回 True，此时会自动回复插件用法
         """
@@ -120,7 +141,13 @@ class PluginManager(SingletonObject):
 
     @staticmethod
     async def cmd_wrapper(plugin: Plugin, event: MessageEvent):
-        if await plugin.on_cmd(event, event.msg.text_only.split()):
+        args = []
+        for msg in event.msg:
+            if isinstance(msg, Text):
+                args += msg.text.strip().split(' ')
+            else:
+                args.append(msg)
+        if await plugin.on_cmd(event, args):
             await event.reply(plugin.usage, quote=False)
 
     def broad_cast(self, event: Event):

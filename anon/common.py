@@ -1,4 +1,8 @@
 # 通用数据结构
+from typing import List
+
+from .perm import Permission
+
 VERSION = '0.3.5'
 
 
@@ -49,9 +53,21 @@ class GroupInfo(StructClass):
     member_count: int
 
 
-class AnonExtraConfig(StructClass):
+class AnonExtraConfig(StructClass, SingletonObject):
     storage_dir: str = 'storage'
     log_file: str = '/dev/null'
-    def_user: int = 114514191  # 默认用户，某些示例插件会使用
-    def_group: int = 114514191  # 默认群组，某些示例插件会使用
+    def_group: int = 11451419
+    owner: List[int] = []
+    admin: List[int] = []
+    moderator: List[int] = []
     cmd_prefix: str = '%'  # CommandManager 默认触发前缀
+
+    def get_perm(self, uid: int) -> Permission:
+        if uid in self.owner:
+            return Permission.Owner
+        elif uid in self.admin:
+            return Permission.Administrator
+        elif uid in self.moderator:
+            return Permission.Moderator
+        else:
+            return Permission.User

@@ -1,3 +1,3 @@
-from .cmd_helper import HelpPlugin
+# from .cmd_helper import HelpPlugin
 
-BUILTIN_PLUGINS = [HelpPlugin()]
+BUILTIN_PLUGINS = []
