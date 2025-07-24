@@ -1,0 +1,3 @@
+[submodule "plugins/store"]
+	path = plugins/store
+	url = git@github.com:jerrita/anon-plugins-store
