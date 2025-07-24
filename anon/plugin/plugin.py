@@ -173,6 +173,12 @@ class PluginManager(SingletonObject):
             await asyncio.sleep(1)
         logger.info('PluginManager Shutdown.')
 
+    def create_task(self, coro):
+        task = self._loop.create_task(coro)
+        self.tasks.add(task)
+        task.add_done_callback(self.tasks.discard)
+        return task
+
     def add_requirements(self, requirements: List[str]):
         """处理插件依赖，如果包未安装则自动安装"""
         for req in requirements:
@@ -183,7 +189,8 @@ class PluginManager(SingletonObject):
             except ModuleNotFoundError:
                 logger.info(f'Installing package: {req}')
                 try:
-                    subprocess.run(['pip', 'install', req], check=True, capture_output=True)
+                    subprocess.run(['pip', 'install', req],
+                                   check=True, capture_output=True)
                     logger.info(f'Successfully installed {req}')
                 except subprocess.CalledProcessError as e:
                     logger.error(f'Failed to install {req}: {e}')
