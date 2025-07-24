@@ -32,7 +32,6 @@ class CronThread:
 class Plugin(StructClass):
     interested: List[Type[Event]] = []
     rev: bool = False
-    requirements: List[str] = []
 
     # groups 根据 white_list 的值确定黑白名单
     perm: Permission = Permission.User
@@ -174,14 +173,14 @@ class PluginManager(SingletonObject):
             await asyncio.sleep(1)
         logger.info('PluginManager Shutdown.')
 
-    def _process_requirements(self, requirements: List[str]):
+    def add_requirements(self, requirements: List[str]):
         """处理插件依赖，如果包未安装则自动安装"""
         for req in requirements:
             pkg_name = re.split(r'[~=<>!]', req)[0].strip()
             try:
                 __import__(pkg_name.replace('-', '_'))
                 logger.info(f'Package {pkg_name} already installed, skipping')
-            except ImportError:
+            except ModuleNotFoundError:
                 logger.info(f'Installing package: {req}')
                 try:
                     subprocess.run(['pip', 'install', req], check=True, capture_output=True)
@@ -195,10 +194,6 @@ class PluginManager(SingletonObject):
             logger.critical(
                 'Unknown plugin type, please inherit from anon.Plugin')
             raise AnonError('plugin')
-
-        # process requirements
-        if plugin.requirements:
-            self._process_requirements(plugin.requirements)
 
         logger.info(f'Plugin {plugin} registered.')
         task = self._loop.create_task(plugin.on_load())
