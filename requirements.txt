@@ -1,11 +1,4 @@
 colorlog~=6.8.2
 websockets~=12.0
 aiocron~=1.8
-
-# Example plugins dependencies
-pytz~=2024.1
 aiohttp~=3.9.3
-chinese2digits~=6.0.2
-
-# Extras
-zhipuai~=2.0.1

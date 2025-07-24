@@ -41,7 +41,7 @@ class Message(List[ChainObj]):
             elif isinstance(i, ChainObj):
                 res.append(i)
             else:
-                logger.warn(f'Message convert: unknown type {type(i)}')
+                logger.warning(f'Message convert: unknown type {type(i)}')
                 res.append(Text(f'<{type(i)}>'))
         return res
 

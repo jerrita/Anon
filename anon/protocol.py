@@ -51,7 +51,7 @@ class Protocol:
         del self._pending_requests[_uuid]
 
         if res.get('status') != 'ok':
-            logger.warn(f'Send request failed with error: {raw.get("msg")}')
+            logger.warning(f'Send request failed with error: {raw.get("msg")}')
             return {}
 
         return res.get('data')
@@ -69,7 +69,7 @@ class Protocol:
             await self.ws.recv()
             return True
         except Exception as e:
-            logger.warn(f'Validate with error: {e}')
+            logger.warning(f'Validate with error: {e}')
             return False
 
     async def event_loop(self):
@@ -88,13 +88,13 @@ class Protocol:
                             logger.debug(f'Session resume: {_uuid}')
                             self._pending_requests[_uuid].put_nowait(raw)
                         else:
-                            logger.warn(f'Received a message with unknown UUID: {_uuid}')
+                            logger.warning(f'Received a message with unknown UUID: {_uuid}')
                     else:
                         task = asyncio.create_task(self.broad_cast(raw))
                         tasks.add(task)
                         task.add_done_callback(tasks.discard)
             except ConnectionClosedError:
-                logger.warn('WS Closed. Reconnecting...')
+                logger.warning('WS Closed. Reconnecting...')
                 self.ws = await websockets.connect(self.end_point, extra_headers={
                     "Authorization": self.token
                 })
@@ -121,7 +121,7 @@ class Protocol:
             data.update({'recall_duration': auto_recall})
         logger.info(f'{self.cached_group_name(gid)}({gid}) <- {msg}')
         if gid == 114514191:
-            logger.warn('Maybe this msg is sent from example plugins, ignored.')
+            logger.warning('Maybe this msg is sent from example plugins, ignored.')
             return False
         return await self.send_request('send_group_msg', data) is not None
 
@@ -144,7 +144,7 @@ class Protocol:
             data.update({'recall_duration': auto_recall})
         logger.info(f'F({uid}) <- {msg}')
         if uid == 114514191:
-            logger.warn('Maybe this msg is sent from example plugins, ignored.')
+            logger.warning('Maybe this msg is sent from example plugins, ignored.')
             return False
         return await self.send_request('send_private_msg', data) is not None
 
@@ -201,7 +201,7 @@ class Protocol:
         :return: 文件存储路径（Shamrock 中）
         """
         if not url and not base64:
-            logger.warn('Download file without url and base64!')
+            logger.warning('Download file without url and base64!')
             return ''
 
         data = any_data({

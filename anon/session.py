@@ -47,7 +47,7 @@ class Bot(Protocol, SingletonObject):
 
     async def sig_term(self):
         logger.critical('SIGTERM received, stopping...')
-        logger.warn(f'Pending tasks: {len(asyncio.all_tasks())}')
+        logger.warning(f'Pending tasks: {len(asyncio.all_tasks())}')
         Storage('core').shutdown()
         await self.pm.shutdown(self.timeout)
         logger.critical('Anon stopped.')

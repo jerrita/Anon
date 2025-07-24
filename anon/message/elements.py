@@ -44,7 +44,7 @@ class ChainObj:
             return cls(**any_data(raw))
 
         if 'type' not in raw and 'data' not in raw:
-            logger.warn('Invalid data format')
+            logger.warning('Invalid data format')
             return Text('[Invalid]')
 
         category = raw['type']
@@ -64,7 +64,7 @@ class ChainObj:
         if category == 'reply':
             return Reply(data['id'])
 
-        logger.warn(f'Unimplemented ElementType: {category}')
+        logger.warning(f'Unimplemented ElementType: {category}')
         return Text(f'[UE:{category}]')
 
 
@@ -175,7 +175,7 @@ class Image(ChainObj):
         return data
 
     def __repr__(self):
-        return f'[Image:{self.file if not self.url else self.url}]'
+        return f'[Image:{self.file if not self.url else (self.url[:50] + '...')}]'
 
 
 if __name__ == '__main__':

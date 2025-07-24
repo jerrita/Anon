@@ -57,6 +57,7 @@ class AnonExtraConfig(StructClass, SingletonObject):
     storage_dir: str = 'storage'
     log_file: str = '/dev/null'
     def_group: int = 11451419
+    dev_groups: int = [11451419]
     owner: List[int] = []
     admin: List[int] = []
     moderator: List[int] = []

@@ -122,32 +122,13 @@ git pull
 
 ```
 
-2. Docker 启动
-
-> 本项目的 docker package 会自动检测 /app 目录，并在没有 anon 的情况下将 package 中的 repo 拷入。
->
-> 将你插件 repo 挂载到 /app 下即可，/app/.installed 文件标志 /app/requirements.txt 有无安装
-
-```bash
-mkdir repo && cd repo
-vim main.py
-mkdir -p plugins/yourname
-vim plugins/yourname/name.py
-echo "requests" > requirements.txt
-docker run --name anon \
-  --network host \
-  -v ${PWD}:/app \
-  -itd ghcr.io/jerrita/anon:latest
-
-```
-
 ## Roadmap
 
 - [x] 基础功能 (插件系统，基本组件)
-- [x] 容器化部署
+- [ ] 容器化部署 (重构中)
 - [x] Command Manager
 - [x] 文件上传
-- [ ] 权限管理
+- [x] 权限管理
 - [ ] 元事件/系统消息
 - [ ] ???
 

@@ -9,7 +9,7 @@ if __name__ == '__main__':
     anon = Bot('127.0.0.1:5800', '114514')
     anon.register_plugins([
         'plugins.example.ping',
-        'plugins.corpus.bang',
+        'plugins.example.bang',
         'plugins.example.zhihu',
         'plugins.example.anime_picture'
     ])

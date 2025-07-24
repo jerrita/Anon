@@ -16,7 +16,7 @@ class MessageEventFactory:
             raw['group_info'] = group_info
             raw['group_name'] = group_info.group_name
             return GroupMessage(raw)
-        logger.warn(f'Unsupported MessageEvent type: {_type}')
+        logger.warning(f'Unsupported MessageEvent type: {_type}')
         return MessageEvent(raw)
 
 

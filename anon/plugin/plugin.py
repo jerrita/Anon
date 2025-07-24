@@ -1,4 +1,6 @@
 import asyncio
+import re
+import subprocess
 from typing import List, Type, Union
 
 import aiocron
@@ -30,6 +32,7 @@ class CronThread:
 class Plugin(StructClass):
     interested: List[Type[Event]] = []
     rev: bool = False
+    requirements: List[str] = []
 
     # groups 根据 white_list 的值确定黑白名单
     perm: Permission = Permission.User
@@ -167,14 +170,36 @@ class PluginManager(SingletonObject):
         for plugin in self.plugins:
             await self._loop.create_task(plugin.on_shutdown())
         for i in range(timeout):
-            logger.warn(f'PluginManager waiting... {timeout - i}s')
+            logger.warning(f'PluginManager waiting... {timeout - i}s')
             await asyncio.sleep(1)
         logger.info('PluginManager Shutdown.')
 
+    def _process_requirements(self, requirements: List[str]):
+        """处理插件依赖，如果包未安装则自动安装"""
+        for req in requirements:
+            pkg_name = re.split(r'[~=<>!]', req)[0].strip()
+            try:
+                __import__(pkg_name.replace('-', '_'))
+                logger.info(f'Package {pkg_name} already installed, skipping')
+            except ImportError:
+                logger.info(f'Installing package: {req}')
+                try:
+                    subprocess.run(['pip', 'install', req], check=True, capture_output=True)
+                    logger.info(f'Successfully installed {req}')
+                except subprocess.CalledProcessError as e:
+                    logger.error(f'Failed to install {req}: {e}')
+                    raise AnonError(f'Failed to install requirement: {req}')
+
     def register_plugin(self, plugin: Plugin):
         if not isinstance(plugin, Plugin):
-            logger.critical('Unknown plugin type, please inherit from anon.Plugin')
+            logger.critical(
+                'Unknown plugin type, please inherit from anon.Plugin')
             raise AnonError('plugin')
+
+        # process requirements
+        if plugin.requirements:
+            self._process_requirements(plugin.requirements)
+
         logger.info(f'Plugin {plugin} registered.')
         task = self._loop.create_task(plugin.on_load())
         self.tasks.add(task)

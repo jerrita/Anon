@@ -35,7 +35,7 @@ class Storage:
             self.fp = open(storage_file_path, 'w+')
             self.flush()
         except Exception as e:
-            logger.warn(f'Open storage file {storage_file_path} failed: {e}')
+            logger.warning(f'Open storage file {storage_file_path} failed: {e}')
             self.fp = None
         self._initialized = True
 
@@ -76,7 +76,7 @@ class Storage:
 
         :return:
         """
-        logger.warn('Storage shutdown called!')
+        logger.warning('Storage shutdown called!')
         for key, inst in self._instances.items():
             logger.info(f'Storage {key} saving...')
             del inst
