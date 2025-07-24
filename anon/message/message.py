@@ -3,8 +3,10 @@ from typing import List, Union
 
 from .elements import *
 from ..logger import logger
+from ..common import StructClass
 
 MessageRaw = List[dict]
+
 
 
 class Message(List[ChainObj]):
@@ -70,6 +72,56 @@ class Message(List[ChainObj]):
     def __repr__(self):
         return ' '.join(i.__repr__() for i in self)
 
+class Node(Message):
+    """
+    一级转发节点
+    """
+    forward_id: int
+    user_id: int
+    nick_name: str
+
+    def __init__(self, *args,
+                 forward_id: int = None,
+                 user_id: int = 10001000,
+                 nick_name: str = '某人',
+                 **kwargs):
+        self.forward_id = forward_id
+        self.user_id = user_id
+        self.nick_name = nick_name
+        super().__init__(*args, **kwargs)
+
+    def decode(self) -> MessageRaw:
+        content = super().decode()
+        res = {'type': 'node', 'data': {}}
+        if self.forward_id:
+            res['data']['id'] = self.forward_id
+        else:
+            res['data']['user_id'] = self.user_id
+            res['data']['nickname'] = self.nick_name
+            res['data']['content'] = content
+        return res
+
+class Forward(StructClass):
+    """
+    组转发消息，包含多个一级转发节点
+    """
+    group_id: int
+    user_id: int
+    news: List[dict] = [{'text': 'PlaceHolder'}]
+    messages: List[Node] = []
+    prompt: str = 'prompt'
+    summary: str = 'summary'
+    source: str = 'source'
+
+    def data(self):
+        ori = super().data()
+        rework = [i.decode() for i in ori['messages']]
+        ori['messages'] = rework
+        ori['news'] = ori['news'][:4]
+        return ori
+    
+    def append(self, data: Node):
+        self.messages.append(data)
 
 Convertable = Union[str, Message, 'ChainObj', list]
 

@@ -1,3 +1,5 @@
+# https://napcat.apifox.cn
+
 import asyncio
 import json
 import uuid
@@ -10,7 +12,7 @@ from websockets import WebSocketClientProtocol
 
 from .common import *
 from .logger import logger
-from .message import Message, Convertable
+from .message import Message, Convertable, Forward
 from .utils import any_data
 
 
@@ -101,6 +103,14 @@ class Protocol:
             except Exception as e:
                 logger.critical(f'Something went wrong, please open an issue with debug logs.')
                 raise AnonError(f'Event loop: {e}')
+            
+    async def napcat_send_forward_msg(self, data: Forward):
+        rework = data.data()
+        if 'group_id' in rework:
+            logger.info(f'{self.cached_group_name(data.group_id)}({data.group_id}) <- <FWD: {data.summary}>')
+        elif 'user_id' in rework:
+            logger.info(f'F({data.user_id}) <- <FWD: {data.summary}>')
+        return await self.send_request('send_forward_msg', rework) is not None
 
     async def send_group_message(self, gid: int, msg: Convertable, auto_recall: int = 0) -> bool:
         """

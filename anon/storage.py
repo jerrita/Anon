@@ -39,6 +39,9 @@ class Storage:
             self.fp = None
         self._initialized = True
 
+    def get_or(self, item, default=None):
+        return self._cache.get(item, default)
+
     def update(self, data: dict):
         self._cache.update(data)
         if self.flush_after_set:
