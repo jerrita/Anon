@@ -101,25 +101,39 @@ class Node(Message):
             res['data']['content'] = content
         return res
 
-class Forward(StructClass):
+class Forward:
     """
     组转发消息，包含多个一级转发节点
     """
-    group_id: int
-    user_id: int
-    news: List[dict] = [{'text': 'PlaceHolder'}]
-    messages: List[Node] = []
-    prompt: str = 'prompt'
-    summary: str = 'summary'
-    source: str = 'source'
+    group_id: int = None
+    user_id: int = None
+    news: List[dict]
+    messages: List[Node]
+    prompt: str 
+    summary: str
+    source: str
+
+    def __init__(self, 
+                 source: str = 'source', 
+                 prompt: str = 'prompt', 
+                 summary: str = 'summary'):
+        self.source = source
+        self.prompt = prompt
+        self.summary = summary
+        self.news = []
+        self.messages = []
 
     def data(self):
-        ori = super().data()
-        rework = [i.decode() for i in ori['messages']]
-        ori['messages'] = rework
-        ori['news'] = ori['news'][:4]
-        return ori
-    
+        return any_data({
+            'group_id': self.group_id,
+            'user_id': self.user_id,
+            'news': self.news[:4],
+            'messages': [i.decode() for i in self.messages],
+            'prompt': self.prompt,
+            'summary': self.summary,
+            'source': self.source
+        })
+
     def append(self, data: Node):
         self.messages.append(data)
 
